@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ML Evolution Timeline (Vertical)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --secondary: #ff5722;
+            --accent: #8bc34a;
+            --paper: #fff9e6;
+            --timeline: #607d8b;
+            --pre1950: #795548;
+            --ai-winter: #9e9e9e;
+            --discovery: #2196F3;
+            --achievement: #4CAF50;
+            --theory: #9C27B0;
+            --application: #FF9800;
+            --symbolic: #009688;
+            --neural: #E91E63;
+            --statistical: #673AB7;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 100%;
+            padding: 15px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            position: sticky;
+            top: 0;
+            background: #f5f5f5;
+            z-index: 10;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            color: var(--primary);
+            margin: 0;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 0.95rem;
+            margin: 5px 0 0;
+        }
+
+        .title-divider {
+            width: 60px;
+            height: 3px;
+            background: var(--secondary);
+            margin: 10px auto;
+        }
+
+        .search-box {
+            margin: 20px auto;
+            position: relative;
+            max-width: 500px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 20px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            font-size: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 15px;
+            top: 12px;
+            color: #999;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .control-btn {
+            padding: 8px 15px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .control-btn i {
+            font-size: 0.9rem;
+        }
+
+        .control-btn:hover, .control-btn.active {
+            background: var(--secondary);
+            transform: translateY(-2px);
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+            font-size: 0.8rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            padding: 5px 10px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .timeline {
+            position: relative;
+            padding: 20px 0;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .timeline-line {
+            position: absolute;
+            left: 30px;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--timeline);
+            z-index: 1;
+        }
+
+        .era {
+            margin-bottom: 30px;
+            position: relative;
+            padding-left: 60px;
+        }
+
+        .era-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            cursor: pointer;
+        }
+
+        .era-year {
+            width: 60px;
+            height: 60px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+            z-index: 2;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+
+        .era.pre-1950 .era-year {
+            background: var(--pre1950);
+        }
+
+        .era.ai-winter .era-year {
+            background: var(--ai-winter);
+        }
+
+        .era-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4rem;
+            color: var(--primary);
+            margin: 0;
+            padding: 10px 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+            width: calc(100% - 20px);
+        }
+
+        .era-content {
+            display: none;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            padding: 15px;
+            margin-top: 10px;
+            position: relative;
+            z-index: 2;
+            border-left: 4px solid var(--secondary);
+        }
+
+        .era.active .era-content {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .milestone {
+            background: white;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: relative;
+            transition: all 0.3s;
+            border-top: 3px solid var(--discovery);
+        }
+
+        .milestone:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .milestone.expanded {
+            transform: scale(1.02);
+            z-index: 5;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .milestone.achievement {
+            border-top-color: var(--achievement);
+        }
+
+        .milestone.theory {
+            border-top-color: var(--theory);
+        }
+
+        .milestone.application {
+            border-top-color: var(--application);
+        }
+
+        .milestone.find-s {
+            border-top-color: var(--secondary);
+            background: linear-gradient(to right, #fff8e1, #ffffff);
+        }
+
+        .milestone.symbolic {
+            border-top-color: var(--symbolic);
+        }
+
+        .milestone.neural {
+            border-top-color: var(--neural);
+        }
+
+        .milestone.statistical {
+            border-top-color: var(--statistical);
+        }
+
+        .milestone-year {
+            position: absolute;
+            top: -10px;
+            right: 10px;
+            background: var(--primary);
+            color: white;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .milestone-type {
+            font-size: 0.7rem;
+            color: #777;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .milestone-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .milestone-icon {
+            font-size: 1rem;
+        }
+
+        .milestone-image {
+            width: 100%;
+            height: auto;
+            max-height: 200px;
+            object-fit: contain;
+            border-radius: 5px;
+            margin: 10px 0;
+            display: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .milestone-desc {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 10px;
+            display: none;
+        }
+
+        .milestone-people {
+            font-size: 0.8rem;
+            color: #666;
+            font-style: italic;
+            display: none;
+        }
+
+        .milestone.expanded .milestone-image,
+        .milestone.expanded .milestone-desc,
+        .milestone.expanded .milestone-people {
+            display: block;
+        }
+
+        .find-s-badge {
+            position: absolute;
+            top: -10px;
+            left: 10px;
+            background: var(--secondary);
+            color: white;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .toggle-all {
+            display: block;
+            margin: 25px auto;
+            padding: 10px 20px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+
+        .toggle-all:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .title {
+                font-size: 1.6rem;
+            }
+            
+            .era {
+                padding-left: 50px;
+            }
+            
+            .era-year {
+                width: 50px;
+                height: 50px;
+                font-size: 1rem;
+            }
+            
+            .era-title {
+                font-size: 1.2rem;
+                padding: 8px 12px;
+            }
+            
+            .control-btn {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+            }
+            
+            .milestone {
+                padding: 12px;
+            }
+            
+            .milestone-title {
+                font-size: 1rem;
+            }
+            
+            .timeline {
+                max-width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">Machine Learning Evolution</h1>
+            <div class="title-divider"></div>
+            <p class="subtitle">From statistical foundations to generative AI</p>
+            
+            <div class="search-box">
+                <input type="text" class="search-input" placeholder="Search milestones..." id="search-input">
+                <i class="fas fa-search search-icon"></i>
+            </div>
+            
+            <div class="controls">
+                <button class="control-btn" onclick="filterMilestones('all')">
+                    <i class="fas fa-layer-group"></i> All
+                </button>
+                <button class="control-btn" onclick="filterMilestones('theory')">
+                    <i class="fas fa-atom"></i> Theories
+                </button>
+                <button class="control-btn" onclick="filterMilestones('discovery')">
+                    <i class="fas fa-microscope"></i> Discoveries
+                </button>
+                <button class="control-btn" onclick="filterMilestones('achievement')">
+                    <i class="fas fa-trophy"></i> Achievements
+                </button>
+                <button class="control-btn" onclick="focusFindS()">
+                    <i class="fas fa-bullseye"></i> Find-S
+                </button>
+            </div>
+            
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: var(--symbolic);"></div>
+                    Symbolic
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: var(--statistical);"></div>
+                    Statistical
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: var(--neural);"></div>
+                    Neural
+                </div>
+            </div>
+        </div>
+        
+        <div class="timeline">
+            <div class="timeline-line"></div>
+            
+            <!-- Pre-1950 -->
+            <div class="era pre-1950">
+                <div class="era-header" onclick="toggleEra(this)">
+                    <div class="era-year">Pre-50</div>
+                    <h2 class="era-title">Statistical Foundations</h2>
+                </div>
+                <div class="era-content">
+                    <div class="milestone theory statistical">
+                        <div class="milestone-year">1763</div>
+                        <div class="milestone-type"><i class="fas fa-atom"></i> Theory</div>
+                        <div class="milestone-title">
+                            <i class="fas fa-calculator milestone-icon"></i>Bayes' Theorem Foundations
+                        </div>
+                        <img src="image1t.png" alt="Thomas Bayes" class="milestone-image">
+                        <div class="milestone-desc">
+                            Thomas Bayes's work on probability theory is published posthumously, laying groundwork for Bayesian methods in ML. His theorem provides a way to update the probability for a hypothesis as more evidence becomes available.
+                        </div>
+                        <div class="milestone-people">Thomas Bayes, Richard Price</div>
+                    </div>
+                    
+                    <div class="milestone theory statistical">
+                        <div class="milestone-year">1805</div>
+                        <div class="milestone-type"><i class="fas fa-atom"></i> Theory</div>
+                        <div class="milestone-title">
+                            <i class="fas fa-chart-line milestone-icon"></i>Least Squares Method
+                        </div>
+                        <img src="image2t.png" alt="Adrien-Marie Legendre" class="milestone-image">
+                        <div class="milestone-desc">
+                            Adrien-Marie Legendre describes the "méthode des moindres carrés", widely used in data fitting. This method minimizes the sum of the squares of the residuals between observed and predicted values.
+                        </div>
+                        <div class="milestone-people">Adrien-Marie Legendre</div>
+                    </div>
+                    
+                    <div class="milestone theory statistical">
+                        <div class="milestone-year">1812</div>
+                        <div class="milestone-type"><i class="fas fa-atom"></i> Theory</div>
+                        <div class="milestone-title">
+                            <i class="fas fa-brain milestone-icon"></i>Bayes' Theorem Formalized
+                        </div>
+                        <img src="image3t.png" alt="Pierre-Simon Laplace" class="milestone-image">
+                        <div class="milestone-desc">
+                            Pierre-Simon Laplace expands on Bayes' work, formalizing what becomes known as Bayes' Theorem. His work in probability theory would become fundamental to machine learning algorithms centuries later.
+                        </div>
+                        <div class="milestone-people">Pierre-Simon Laplace</div>
+                    </div>
+                    
+                    <div class="milestone achievement symbolic">
+                        <div class="milestone-year">1843</div>
+                        <div class="milestone-type"><i class="fas fa-trophy"></i> Visionary</div>
+                        <div class="milestone-title">
+                            <i class="fas fa-lightbulb milestone-icon"></i>Ada Lovelace's Vision
+                        </div>
+                        <img src="image4t.png" alt="Ada Lovelace" class="milestone-image">
+                        <div class="milestone-desc">
+                            Ada Lovelace foresaw machines processing more than numbers, influencing symbolic AI and machine learning concepts. Her notes on Babbage's Analytical Engine contained what is considered the first computer algorithm.
+                        </div>
+                        <div class="milestone-people">Ada Lovelace</div>
+                    </div>
+                    
+                    <div class="milestone theory statistical">
+                        <div class="milestone-year">1913</div>
+                        <div class="milestone-type"><i class="fas fa-atom"></i> Theory</div>
+                        <div class="milestone-title">
+                            <i class="fas fa-link milestone-icon"></i>Markov Chains
+                        </div>
+                        <img src="image5t.png" alt="Andrey Markov" class="milestone-image">
+                        <div class="milestone-desc">
+                            Andrey Markov describes techniques for analyzing poems that later become known as Markov chains. These stochastic models are widely used in speech recognition, bioinformatics, and more.
+                        </div>
+                        <div class="milestone-people">Andrey Markov</div>
+                    </div>
+                    
+                    <div class="milestone discovery neural">
+                        <div class="milestone-year">1943</div>
+                        <div class="milestone-type"><i class="fas fa-microscope"></i> Discovery</div>
+                        <div class="milestone-title">
+                            <i class="fas fa-project-diagram milestone-icon"></i>Artificial Neuron
+                        </div>
+                        <img src="image6t.png" alt="McCulloch-Pitts neuron" class="milestone-image">
+                        <div class="milestone-desc">
+                            Mathematical model that imitates biological neurons, considered the first neural model. The McCulloch-Pitts neuron was a binary threshold unit that became the foundation for artificial neural networks.
+                        </div>
+                        <div class="milestone-people">Warren McCulloch, Walter Pitts</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 1950s -->
+            <div class="era">
+                <div class="era-header" onclick="toggleEra(this)">
+                    <div class="era-year">1950</div>
+                    <h2 class="era-title">Pioneering Research</h2>
+                </div>
+                <div class="era-content">
+                    <div class="milestone theory symbolic">
+                        <div class="milestone-year">1950</div>
+                        <div class="milestone-type"><i class="fas fa-atom"></i> Concept</div>
+                        <div class="milestone-title">
+                            <i class="fas fa-robot milestone-icon"></i>Turing's Learning Machine
+                        </div>
+                        <img src="image7t.png" alt="Alan Turing" class="milestone-image">
+                        <div class="milestone-desc">
+                            Alan Turing proposes a 'learning machine' that could learn and become artificially intelligent. His paper "Computing Machinery and Intelligence" introduced the Turing Test and conceptualized machine learning.
+                        </div>
+                        <div class="milestone-people">Alan Turing</div>
+                    </div>
+                    
+                    <div class="milestone achievement neural">
+                        <div class="milestone-year">1951</div>
+                        <div class="milestone-type"><i class="fas fa-trophy"></i> Achievement</div>
+                        <div class="milestone-title">
+                            <i class="fas fa-network-wired milestone-icon"></i>First Neural Network Machine
+                        </div>
+                        <img src="image8t.png" alt="SNARC machine" class="milestone-image">
+                        <div class="milestone-desc">
+                            Marvin Minsky and Dean Edmonds build SNARC, the first neural network machine capable of learning. This machine used 3,000 vacuum tubes to simulate a network of 40 neurons.
+                        </div>
+                        <div class="milestone-people">Marvin Minsky, Dean Edmonds</div>
+                    </div>
+                    
+                    <div class="milestone application symbolic">
+                        <div class="milestone-year">1952</div>
+                        <div class="milestone-type"><i class="fas fa-chess-board milestone-icon"></i> Application</div>
+                        <div class="milestone-title">
+                            <i class="fas fa-gamepad milestone-icon"></i>Machines Playing Checkers
+                        </div>
+                        <img src="image9t.png" alt="Arthur Samuel with IBM 701" class="milestone-image">
+                        <div class="milestone-desc">
+                            Arthur Samuel creates some of the first machine learning programs to play checkers. His program improved through self-play and is considered the first successful self-learning program.
+                        </div>
+                        <div class="milestone-people">Arthur Samuel</div>
+                    </div>
+                    
+                    <div class="milestone discovery neural">
+                        <div class="milestone-year">1957</div>
+                        <div class="milestone-type"><i class="fas fa-microscope"></i> Discovery</div>
+                        <div class="milestone-title">
+                            <i class="fas fa-percentage milestone-icon"></i>Perceptron
+                        </div>
+                        <img src="image10t.png" alt="Perceptron diagram" class="milestone-image">
+                        <div class="milestone-desc">
+                            Frank Rosenblatt invents the perceptron, generating significant excitement in the field. This single-layer neural network could learn weights for classification tasks, though with limitations on what it could learn.
+                        </div>
+                        <div class="milestone-people">Frank Rosenblatt</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 1960s -->
+            <div class="era">
+                <div class="era-header" onclick="toggleEra(this)">
+                    <div class="era-year">1960</div>
+                    <h2 class="era-title">Early Algorithms</h2>
+                </div>
+                <div class="era-content">
+                    <div class="milestone achievement symbolic">
+                        <div class="milestone-year">1963</div>
+                        <div class="milestone-type"><i class="fas fa-trophy"></i> Achievement</div>
+                        <div class="milestone-title">
+                            <i class="fas fa-table milestone-icon"></i>Machines Playing Tic-Tac-Toe
+                        </div>
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/3/32/Tic_tac_toe.svg" alt="Tic-tac-toe" class="milestone-image">
+                        <div class="milestone-desc">
+                            Donald Michie creates a matchbox machine using reinforcement learning to play Tic-tac-toe. This simple system used matchboxes and beads to represent game states and learned through trial and error.
+                        </div>
+                        <div class="milestone-people">Donald Michie</div>
+                    </div>
+                    
+                    <div class="milestone discovery statistical">
+                        <div class="milestone-year">1967</div>
+                        <div class="milestone-type"><i class="fas fa-microscope"></i> Algorithm</div>
+                        <div class="milestone-title">
+                            <i class="fas fa-search milestone-icon"></i>Nearest Neighbor
+                        </div>
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/e/e7/KnnClassification.svg" alt="KNN diagram" class="milestone-image">
+                        <div class="milestone-desc">
+                            The nearest neighbor algorithm is created, marking the start of basic pattern recognition. This simple yet powerful algorithm became foundational for many machine learning applications.
+                        </div>
+                    </div>
+                    
+                    <div class="milestone theory neural">
+                        <div class="milestone-year">1969</div>
+                        <div class="milestone-type"><i class="fas fa-atom"></i> Theory</div>
+                        <div class="milestone-title">
+                            <i class="fas fa-exclamation-triangle milestone-icon"></i>Limitations of Neural Networks
+                        </div>
+                        <img src="image11t.png" alt="Marvin Minsky" class="milestone-image">
+                        <div class="milestone-desc">
+                            Minsky and Papert publish "Perceptrons", describing limitations that temporarily slow neural network research. They proved single-layer perceptrons couldn't solve non-linearly separable problems like XOR.
+                        </div>
+                        <div class="milestone-people">Marvin Minsky, Seymour Papert</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 1970s -->
+            <div class="era ai-winter">
+                <div class="era-header" onclick="toggleEra(this)">
+                    <div class="era-year">1970</div>
+                    <h2 class="era-title">AI Winter & Breakthroughs</h2>
+                </div>
+                <div class="era-content">
+                    <div class="milestone discovery neural">
+                        <div class="milestone-year">1970</div>
+                        <div class="milestone-type"><i class="fas fa-microscope"></i> Discovery</div>
+                        <div class="milestone-title">
+                            <i class="fas fa-random milestone-icon"></i>Automatic Differentiation
+                        </div>
+                        <img src="image12t.png" alt="Chain rule" class="milestone-image">
+                        <div class="milestone-desc">
+                            Foundation for backpropagation is established through automatic differentiation techniques. This mathematical method would later become crucial for training deep neural networks efficiently.
+                        </div>
+                        <div class="milestone-people">Seppo Linnainmaa</div>
+                    </div>
+                    
+                    <div class="milestone find-s symbolic">
+                        <div class="find-s-badge">Find-S</div>
+                        <div class="milestone-year">1977</div>
+                        <div class="milestone-type"><i class="fas fa-code"></i> Algorithm</div>
+                        <div class="milestone-title">
+                            <i class="fas fa-search-plus milestone-icon"></i>Find-S Algorithm
+                        </div>
+                        <img src="image13t.png" alt="Hypothesis space" class="milestone-image">
+                        <div class="milestone-desc">
+                            Tom Mitchell formalizes Find-S for concept learning from positive examples, starting with most specific hypothesis. This algorithm incrementally generalizes the hypothesis to cover positive training examples.
+                        </div>
+                        <div class="milestone-people">Tom Mitchell</div>
+                    </div>
+                    
+                    <div class="milestone discovery neural">
+                        <div class="milestone-year">1979</div>
+                        <div class="milestone-type"><i class="fas fa-microscope"></i> Discovery</div>
+                        <div class="milestone-title">
+                            <i class="fas fa-eye milestone-icon"></i>Neocognitron
+                        </div>
+                        <img src="image14t.png" alt="Neocognitron architecture" class="milestone-image">
+                        <div class="milestone-desc">
+                            Early work that later inspires convolutional neural networks (CNNs). Kunihiko Fukushima's hierarchical, multilayered neural network could recognize patterns with some translation invariance.
+                        </div>
+                        <div class="milestone-people">Kunihiko Fukushima</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 1980s -->
+            <div class="era">
+                <div class="era-header" onclick="toggleEra(this)">
+                    <div class="era-year">1980</div>
+                    <h2 class="era-title">Neural Network Renaissance</h2>
+                </div>
+                <div class="era-content">
+                    <div class="milestone discovery neural">
+                        <div class="milestone-year">1982</div>
+                        <div class="milestone-type"><i class="fas fa-microscope"></i> Discovery</div>
+                        <div class="milestone-title">
+                            <i class="fas fa-memory milestone-icon"></i>Hopfield Networks
+                        </div>
+                        <img src="image15t.png" alt="Hopfield network" class="milestone-image">
+                        <div class="milestone-desc">
+                            Recurrent neural networks that can serve as content-addressable memory systems. These networks could store and retrieve patterns, showing neural networks could perform useful computation.
+                        </div>
+                        <div class="milestone-people">John Hopfield</div>
+                    </div>
+                    
+                    <div class="milestone application neural">
+                        <div class="milestone-year">1986</div>
+                        <div class="milestone-type"><i class="fas fa-trophy"></i> Breakthrough</div>
+                        <div class="milestone-title">
+                            <i class="fas fa-project-diagram milestone-icon"></i>Backpropagation
+                        </div>
+                        <img src="image16t.png" alt="Backpropagation diagram" class="milestone-image">
+                        <div class="milestone-desc">
+                            Applied to neural networks by Rumelhart, Hinton, and Williams for learning internal representations. This efficient algorithm for training multi-layer networks overcame the limitations identified by Minsky and Papert.
+                        </div>
+                        <div class="milestone-people">Rumelhart, Hinton, Williams</div>
+                    </div>
+                    
+                    <div class="milestone discovery neural">
+                        <div class="milestone-year">1989</div>
+                        <div class="milestone-type"><i class="fas fa-microscope"></i> Discovery</div>
+                        <div class="milestone-title">
+                            <i class="fas fa-chess milestone-icon"></i>Q-learning
+                        </div>
+                        <img src="image17t.png" alt="Q-learning" class="milestone-image">
+                        <div class="milestone-desc">
+                            Improves the practicality and feasibility of reinforcement learning. This model-free algorithm could learn optimal policies by interacting with the environment without requiring a model of the environment.
+                        </div>
+                        <div class="milestone-people">Christopher Watkins</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 1990s -->
+            <div class="era">
+                <div class="era-header" onclick="toggleEra(this)">
+                    <div class="era-year">1990</div>
+                    <h2 class="era-title">Practical Applications</h2>
+                </div>
+                <div class="era-content">
+                    <div class="milestone discovery statistical">
+                        <div class="milestone-year">1995</div>
+                        <div class="milestone-type"><i class="fas fa-microscope"></i> Algorithm</div>
+                        <div class="milestone-title">
+                            <i class="fas fa-chart-bar milestone-icon"></i>Support-Vector Machines
+                        </div>
+                        <img src="image18t.png" alt="SVM margin" class="milestone-image">
+                        <div class="milestone-desc">
+                            Cortes and Vapnik publish work on SVMs, widely used in classification tasks. These models maximize the margin between classes in high-dimensional space using kernel tricks.
+                        </div>
+                        <div class="milestone-people">Corinna Cortes, Vladimir Vapnik</div>
+                    </div>
+                    
+                    <div class="milestone achievement symbolic">
+                        <div class="milestone-year">1997</div>
+                        <div class="milestone-type"><i class="fas fa-trophy"></i> Achievement</div>
+                        <div class="milestone-title">
+                            <i class="fas fa-chess-queen milestone-icon"></i>Deep Blue vs Kasparov
+                        </div>
+                        <img src="image19t.png" alt="Garry Kasparov" class="milestone-image">
+                        <div class="milestone-desc">
+                            IBM's Deep Blue beats the world chess champion, showcasing ML capabilities. This was the first time a computer defeated a reigning world champion under standard tournament time controls.
+                        </div>
+                    </div>
+                    
+                    <div class="milestone discovery neural">
+                        <div class="milestone-year">1997</div>
+                        <div class="milestone-type"><i class="fas fa-microscope"></i> Discovery</div>
+                        <div class="milestone-title">
+                            <i class="fas fa-memory milestone-icon"></i>LSTM Networks
+                        </div>
+                        <img src="image20t.png" alt="LSTM cell" class="milestone-image">
+                        <div class="milestone-desc">
+                            Long short-term memory networks greatly improve RNN efficiency. These networks could learn long-term dependencies, solving the vanishing gradient problem in standard RNNs.
+                        </div>
+                        <div class="milestone-people">Sepp Hochreiter, Jürgen Schmidhuber</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 2000s -->
+            <div class="era">
+                <div class="era-header" onclick="toggleEra(this)">
+                    <div class="era-year">2000</div>
+                    <h2 class="era-title">Kernel Methods & Big Data</h2>
+                </div>
+                <div class="era-content">
+                    <div class="milestone achievement statistical">
+                        <div class="milestone-year">2006</div>
+                        <div class="milestone-type"><i class="fas fa-trophy"></i> Competition</div>
+                        <div class="milestone-title">
+                            <i class="fas fa-film milestone-icon"></i>The Netflix Prize
+                        </div>
+                        <img src="image21t.png" alt="Netflix logo" class="milestone-image">
+                        <div class="milestone-desc">
+                            Landmark competition that advanced collaborative filtering and recommendation systems. Teams competed to improve Netflix's recommendation algorithm by 10%, spurring innovation in ML techniques.
+                        </div>
+                    </div>
+                    
+                    <div class="milestone discovery neural">
+                        <div class="milestone-year">2009</div>
+                        <div class="milestone-type"><i class="fas fa-database"></i> Dataset</div>
+                        <div class="milestone-title">
+                            <i class="fas fa-images milestone-icon"></i>ImageNet
+                        </div>
+                        <img src="image22t.png" alt="ImageNet logo" class="milestone-image">
+                        <div class="milestone-desc">
+                            Large visual database that becomes a catalyst for the AI boom. With over 14 million labeled images, it enabled training of deep neural networks for visual recognition tasks.
+                        </div>
+                        <div class="milestone-people">Fei-Fei Li</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 2010s -->
+            <div class="era">
+                <div class="era-header" onclick="toggleEra(this)">
+                    <div class="era-year">2010</div>
+                    <h2 class="era-title">Deep Learning Revolution</h2>
+                </div>
+                <div class="era-content">
+                    <div class="milestone achievement symbolic">
+                        <div class="milestone-year">2011</div>
+                        <div class="milestone-type"><i class="fas fa-trophy"></i> Achievement</div>
+                        <div class="milestone-title">
+                            <i class="fas fa-question-circle milestone-icon"></i>Watson Wins Jeopardy!
+                        </div>
+                        <img src="image23t.png" alt="Watson on Jeopardy" class="milestone-image">
+                        <div class="milestone-desc">
+                            IBM's Watson beats human champions using ML and NLP techniques. This demonstrated advanced natural language processing and question answering capabilities.
+                        </div>
+                    </div>
+                    
+                    <div class="milestone discovery neural">
+                        <div class="milestone-year">2012</div>
+                        <div class="milestone-type"><i class="fas fa-trophy"></i> Breakthrough</div>
+                        <div class="milestone-title">
+                            <i class="fas fa-image milestone-icon"></i>AlexNet
+                        </div>
+                        <img src="image24t.png" alt="AlexNet architecture" class="milestone-image">
+                        <div class="milestone-desc">
+                            Achieves breakthrough results in image recognition, popularizing deep neural networks. AlexNet's success in the ImageNet competition marked the beginning of the deep learning revolution.
+                        </div>
+                    </div>
+                    
+                    <div class="milestone achievement neural">
+                        <div class="milestone-year">2016</div>
+                        <div class="milestone-type"><i class="fas fa-trophy"></i> Achievement</div>
+                        <div class="milestone-title">
+                            <i class="fas fa-chess-board milestone-icon"></i>AlphaGo
+                        </div>
+                        <img src="image25t.png" alt="AlphaGo vs Lee Sedol" class="milestone-image">
+                        <div class="milestone-desc">
+                            Defeats world champion Go player Lee Sedol, demonstrating advanced reinforcement learning. This was considered a decade ahead of expectations for AI capabilities in complex games.
+                        </div>
+                    </div>
+                    
+                    <div class="milestone discovery neural">
+                        <div class="milestone-year">2017</div>
+                        <div class="milestone-type"><i class="fas fa-microscope"></i> Discovery</div>
+                        <div class="milestone-title">
+                            <i class="fas fa-exchange-alt milestone-icon"></i>Transformer Architecture
+                        </div>
+                        <img src="image26t.png" alt="Transformer architecture" class="milestone-image">
+                        <div class="milestone-desc">
+                            Enables faster parallel training of neural networks on sequential data like text. This architecture using attention mechanisms revolutionized natural language processing.
+                        </div>
+                        <div class="milestone-people">Google Brain Team</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 2020s -->
+            <div class="era">
+                <div class="era-header" onclick="toggleEra(this)">
+                    <div class="era-year">2020</div>
+                    <h2 class="era-title">Generative AI Era</h2>
+                </div>
+                <div class="era-content">
+                    <div class="milestone achievement neural">
+                        <div class="milestone-year">2020</div>
+                        <div class="milestone-type"><i class="fas fa-trophy"></i> Breakthrough</div>
+                        <div class="milestone-title">
+                            <i class="fas fa-robot milestone-icon"></i>GPT-3 & Stable Diffusion
+                        </div>
+                        <img src="image26t.png" alt="GPT-3 architecture" class="milestone-image">
+                        <div class="milestone-desc">
+                            Generative models create human-like text and images, entering public consciousness. These models demonstrated unprecedented capabilities in generating coherent and creative content.
+                        </div>
+                    </div>
+                    
+                    <div class="milestone achievement neural">
+                        <div class="milestone-year">2021</div>
+                        <div class="milestone-type"><i class="fas fa-trophy"></i> Achievement</div>
+                        <div class="milestone-title">
+                            <i class="fas fa-dna milestone-icon"></i>AlphaFold 2
+                        </div>
+                        <img src="image27t.png" alt="AlphaFold protein structure" class="milestone-image">
+                        <div class="milestone-desc">
+                            Revolutionizes protein structure prediction with unprecedented accuracy. This breakthrough has major implications for biological research and drug discovery.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <button class="toggle-all" onclick="toggleAll()">Expand All Eras</button>
+    </div>
+
+    <script>
+        function toggleEra(header) {
+            const era = header.parentElement;
+            era.classList.toggle('active');
+            
+            // Scroll to the era
+            era.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        
+        function toggleAll() {
+            const eras = document.querySelectorAll('.era');
+            const button = document.querySelector('.toggle-all');
+            
+            const allOpen = [...eras].every(era => era.classList.contains('active'));
+            
+            eras.forEach(era => {
+                if (allOpen) {
+                    era.classList.remove('active');
+                    button.textContent = 'Expand All Eras';
+                } else {
+                    era.classList.add('active');
+                    button.textContent = 'Collapse All Eras';
+                }
+            });
+        }
+        
+        // Toggle milestone expansion
+        document.querySelectorAll('.milestone').forEach(milestone => {
+            milestone.addEventListener('click', function(e) {
+                // Don't toggle if clicking on a link or button inside
+                if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON') return;
+                
+                // Close all other expanded milestones first
+                document.querySelectorAll('.milestone.expanded').forEach(m => {
+                    if (m !== this) m.classList.remove('expanded');
+                });
+                
+                // Toggle this one
+                this.classList.toggle('expanded');
+                
+                // Scroll into view if expanding
+                if (this.classList.contains('expanded')) {
+                    this.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            });
+        });
+        
+        // Search functionality
+        document.getElementById('search-input').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const milestones = document.querySelectorAll('.milestone');
+            
+            milestones.forEach(milestone => {
+                const text = milestone.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    milestone.style.display = 'block';
+                    // Highlight matching text
+                    const html = milestone.innerHTML;
+                    milestone.innerHTML = html.replace(
+                        new RegExp(searchTerm, 'gi'),
+                        match => `<span style="background-color: yellow">${match}</span>`
+                    );
+                    
+                    // Open the parent era
+                    const era = milestone.closest('.era');
+                    if (era) era.classList.add('active');
+                } else {
+                    milestone.style.display = 'none';
+                }
+            });
+        });
+        
+        // Filter milestones by type
+        function filterMilestones(type) {
+            const milestones = document.querySelectorAll('.milestone');
+            const buttons = document.querySelectorAll('.control-btn');
+            
+            // Update button states
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            milestones.forEach(milestone => {
+                if (type === 'all') {
+                    milestone.style.display = 'block';
+                } else {
+                    if (milestone.classList.contains(type)) {
+                        milestone.style.display = 'block';
+                        
+                        // Open the parent era
+                        const era = milestone.closest('.era');
+                        if (era) era.classList.add('active');
+                    } else {
+                        milestone.style.display = 'none';
+                    }
+                }
+            });
+        }
+        
+        // Focus on Find-S milestone
+        function focusFindS() {
+            const findSMilestone = document.querySelector('.milestone.find-s');
+            const era = findSMilestone.closest('.era');
+            
+            // Open the era
+            era.classList.add('active');
+            
+            // Expand the milestone
+            document.querySelectorAll('.milestone.expanded').forEach(m => m.classList.remove('expanded'));
+            findSMilestone.classList.add('expanded');
+            
+            // Scroll to it
+            findSMilestone.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // Highlight the Find-S button
+            document.querySelectorAll('.control-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+        
+        // Open first era by default
+        document.querySelector('.era').classList.add('active');
+    </script>
+</body>
+</html>

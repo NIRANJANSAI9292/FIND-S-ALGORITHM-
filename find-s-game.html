@@ -1,0 +1,2581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find-S Algorithm Games</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4a90e2;
+            --secondary: #1e88e5;
+            --accent: #ffc107;
+            --danger: #f44336;
+            --success: #4caf50;
+            --background: #121212;
+            --card-bg: #1e1e1e;
+            --bronze: #cd7f32;
+            --silver: #c0c0c0;
+            --gold: #ffd700;
+        }
+
+        body {
+            font-family: 'Rubik', sans-serif;
+            background: var(--background);
+            color: white;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            padding: 1rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1.8rem;
+        }
+
+        .game-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .game-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 3px solid transparent;
+            text-align: center;
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            border-color: var(--accent);
+        }
+
+        .game-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--accent);
+        }
+
+        .game-title {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .game-desc {
+            color: #aaa;
+            margin-bottom: 1.5rem;
+        }
+
+        .game-badge {
+            display: inline-block;
+            background: var(--accent);
+            color: black;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .game-container {
+            display: none;
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 1rem;
+        }
+
+        .back-btn {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 1rem;
+        }
+
+        /* Shared game UI elements */
+        .score-display {
+            background: rgba(255,255,255,0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            display: inline-block;
+        }
+
+        .timer {
+            color: var(--accent);
+            font-weight: bold;
+            float: right;
+        }
+
+        /* Music controls */
+        .music-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(0,0,0,0.7);
+            padding: 10px;
+            border-radius: 50px;
+        }
+
+        .music-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 5px 10px;
+        }
+
+        /* Concept Virus specific styles */
+        .virus-node {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.8rem;
+            text-align: center;
+            background: radial-gradient(circle, #f44336 0%, #b71c1c 100%);
+            color: white;
+            font-weight: bold;
+            border: 2px solid white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        .virus-node.cured {
+            background: radial-gradient(circle, #4caf50 0%, #1b5e20 100%);
+        }
+
+        .virus-node.mismatch {
+            animation: shake 0.5s;
+            border: 2px solid var(--danger);
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+
+        .virus-network {
+            position: relative;
+            height: 400px;
+            width: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path d="M0,50 L100,50 M50,0 L50,100" stroke="%23333" stroke-width="1"/></svg>');
+            margin: 1rem 0;
+            border: 2px solid #444;
+            border-radius: 10px;
+        }
+
+        .hypothesis-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .hypothesis-btn:hover {
+            background: var(--secondary);
+            transform: scale(1.05);
+        }
+
+        .hypothesis-btn.selected {
+            background: var(--accent);
+            color: black;
+            font-weight: bold;
+            transform: scale(1.05);
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        /* Hypothesis Golf styles */
+        .golf-course {
+            height: 200px;
+            background: linear-gradient(to bottom, #4CAF50, #8BC34A);
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .golf-hole {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: black;
+            border-radius: 50%;
+            right: 50px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .golf-flag {
+            position: absolute;
+            right: 65px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: red;
+            font-size: 1.5rem;
+        }
+
+        .golf-ball {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            left: 50px;
+            top: 50%;
+            transform: translateY(-50%);
+            transition: left 0.5s;
+        }
+
+        /* Data Dungeon styles */
+        .dungeon-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            margin: 1rem 0;
+        }
+
+        .dungeon-room {
+            background: #795548;
+            border: 2px solid #5D4037;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dungeon-room::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.3);
+        }
+
+        .dungeon-room.cleared::after {
+            background: rgba(76, 175, 80, 0.3);
+        }
+
+        .dungeon-monster {
+            position: absolute;
+            font-size: 2rem;
+        }
+
+        /* Feature Tetris styles */
+        .tetris-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 2px;
+            background: rgba(255,255,255,0.1);
+            padding: 2px;
+            margin: 1rem 0;
+        }
+
+        .tetris-cell {
+            aspect-ratio: 1;
+            background: rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tetris-block {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.7rem;
+            text-align: center;
+            word-break: break-word;
+            padding: 2px;
+            border-radius: 2px;
+        }
+
+        /* ML Detective styles */
+        .case-file {
+            background: #3E2723;
+            padding: 1rem;
+            border-radius: 5px;
+            margin: 1rem 0;
+        }
+
+        .witness-statement {
+            background: #5D4037;
+            padding: 0.8rem;
+            margin: 0.5rem 0;
+            border-radius: 3px;
+        }
+
+        .suspect-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .suspect-card {
+            background: #4E342E;
+            padding: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .suspect-card:hover {
+            transform: scale(1.05);
+        }
+
+        .suspect-card.selected {
+            background: var(--accent);
+            color: black;
+            font-weight: bold;
+        }
+
+        /* Message box */
+        .message-box {
+            min-height: 50px;
+            padding: 1rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 5px;
+            margin-top: 1rem;
+        }
+
+        /* Tutorial box */
+        .tutorial-box {
+            background: rgba(0,0,0,0.5);
+            padding: 1rem;
+            border-radius: 5px;
+            margin: 1rem 0;
+            border-left: 4px solid var(--accent);
+        }
+
+        .tutorial-box h3 {
+            margin-top: 0;
+            color: var(--accent);
+        }
+
+        .tutorial-box ul {
+            padding-left: 1.5rem;
+        }
+
+        .tutorial-box li {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 10px;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .how-to-play-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 1rem;
+        }
+
+        /* Badge styles */
+        .badge-container {
+            display: flex;
+            gap: 10px;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            background: var(--card-bg);
+            border: 2px solid var(--accent);
+        }
+
+        .badge.bronze {
+            border-color: var(--bronze);
+            color: var(--bronze);
+        }
+
+        .badge.silver {
+            border-color: var(--silver);
+            color: var(--silver);
+        }
+
+        .badge.gold {
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        .badge-locked {
+            opacity: 0.3;
+        }
+
+        .badge-tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .badge-tooltip .tooltip-text {
+            visibility: hidden;
+            width: 120px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -60px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .badge-tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Difficulty selector */
+        .difficulty-selector {
+            display: flex;
+            gap: 10px;
+            margin: 1rem 0;
+        }
+
+        .difficulty-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .difficulty-btn.active {
+            background: var(--accent);
+            color: black;
+        }
+
+        /* Feedback styles */
+        .feedback-box {
+            padding: 1rem;
+            border-radius: 5px;
+            margin: 1rem 0;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .feedback-title {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: var(--accent);
+        }
+
+        .optimal-path {
+            display: flex;
+            gap: 5px;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+
+        .path-step {
+            background: rgba(255,255,255,0.1);
+            padding: 0.5rem;
+            border-radius: 5px;
+        }
+
+        .path-step.current {
+            background: var(--accent);
+            color: black;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .game-selector {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.2rem;
+            }
+            
+            .suspect-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .modal-content {
+                width: 90%;
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Music Controls -->
+    <div class="music-controls">
+        <button class="music-btn" id="musicToggle" title="Toggle music">
+            <i class="fas fa-music"></i>
+        </button>
+        <audio id="bgMusic" loop>
+            <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+        </audio>
+    </div>
+
+    <!-- How to Play Modal -->
+    <div class="modal" id="howToPlayModal">
+        <div class="modal-content">
+            <button class="close-modal" id="closeModal">&times;</button>
+            <h2 id="modalTitle">How to Play</h2>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <div class="header">
+        <h1>FIND-S ALGORITHM GAMES</h1>
+    </div>
+
+    <div class="game-selector" id="gameSelector">
+        <div class="game-card" onclick="loadGame('virus')">
+            <div class="game-icon">🦠</div>
+            <h3 class="game-title">CONCEPT VIRUS</h3>
+            <p class="game-desc">Contain a spreading data infection by finding the correct hypothesis cure</p>
+            <span class="game-badge">Pandemic Simulation</span>
+        </div>
+        
+        <div class="game-card" onclick="loadGame('golf')">
+            <div class="game-icon">⛳</div>
+            <h3 class="game-title">HYPOTHESIS GOLF</h3>
+            <p class="game-desc">Reach the target hypothesis in the fewest generalizations</p>
+            <span class="game-badge">Precision Challenge</span>
+        </div>
+        
+        <div class="game-card" onclick="loadGame('dungeon')">
+            <div class="game-icon">🏰</div>
+            <h3 class="game-title">DATA DUNGEON</h3>
+            <p class="game-desc">Navigate through rooms of misclassified examples to find the treasure</p>
+            <span class="game-badge">Roguelike Adventure</span>
+        </div>
+        
+        <div class="game-card" onclick="loadGame('tetris')">
+            <div class="game-icon">🧊</div>
+            <h3 class="game-title">FEATURE TETRIS</h3>
+            <p class="game-desc">Build complete hypotheses by arranging falling feature blocks</p>
+            <span class="game-badge">Pattern Matching</span>
+        </div>
+        
+        <div class="game-card" onclick="loadGame('detective')">
+            <div class="game-icon">🕵️</div>
+            <h3 class="game-title">ML DETECTIVE</h3>
+            <p class="game-desc">Solve mysteries by interrogating feature suspects to find the culprit hypothesis</p>
+            <span class="game-badge">Mystery Solving</span>
+        </div>
+    </div>
+
+   <!-- Concept Virus Game -->
+<div class="game-container" id="virusGame">
+    <button class="back-btn" onclick="backToMenu()">← Back to Menu</button>
+    <button class="how-to-play-btn" onclick="showHowToPlay('virus')">How to Play</button>
+    <h2>CONCEPT VIRUS OUTBREAK</h2>
+    
+    <div class="difficulty-selector">
+        <button class="difficulty-btn active" data-level="1">Beginner</button>
+        <button class="difficulty-btn" data-level="2">Intermediate</button>
+        <button class="difficulty-btn" data-level="3">Expert</button>
+    </div>
+    
+    <div class="score-display">Cured: <span id="virusScore">0</span> | Infected: <span id="virusInfected">3</span></div>
+    <div class="timer">⏱️ <span id="virusTime">60</span>s</div>
+    
+    <div class="badge-container">
+        <div class="badge-tooltip">
+            <div class="badge bronze" id="virusBadge1">🥉</div>
+            <span class="tooltip-text">Bronze: Cure 3 nodes</span>
+        </div>
+        <div class="badge-tooltip">
+            <div class="badge bronze badge-locked" id="virusBadge2">🥈</div>
+            <span class="tooltip-text">Silver: Cure all nodes in under 45s</span>
+        </div>
+        <div class="badge-tooltip">
+            <div class="badge bronze badge-locked" id="virusBadge3">🥇</div>
+            <span class="tooltip-text">Gold: Cure all nodes with no mismatches</span>
+        </div>
+    </div>
+    
+    <div class="tutorial-box">
+        <h3>Learning Objective</h3>
+        <p>Discover the <strong>most specific hypothesis</strong> that matches ALL infected nodes using the Find-S algorithm:</p>
+        <ol>
+            <li>Start with the most specific possible hypothesis</li>
+            <li>Generalize only when you find an infected node that doesn't match</li>
+            <li>The final hypothesis should be the most specific one that matches all infected nodes</li>
+        </ol>
+        
+        <div id="targetHint" style="display: none; background: rgba(0,255,0,0.1); padding: 10px; margin-top: 10px;">
+            <strong>Target Hint:</strong> The correct hypothesis must match <span id="requiredAttributes"></span>
+        </div>
+        <button id="showHint" class="hypothesis-btn" style="margin-top: 10px;">Show Target Hint</button>
+    </div>
+    
+    <div class="virus-network" id="virusNetwork"></div>
+    
+    <div>
+        <h3>ANTIDOTE HYPOTHESIS OPTIONS:</h3>
+        <div class="tutorial-box" style="background: rgba(0,0,255,0.1);">
+            <strong>Algorithm Guidance:</strong>
+            <p id="algorithmStep">Start by selecting the most specific hypothesis that matches your first infected node</p>
+        </div>
+        <div id="virusHypothesisOptions" style="display: flex; gap: 10px; margin: 1rem 0; flex-wrap: wrap;"></div>
+    </div>
+    
+    <div id="virusMessage" class="message-box">
+        Select a hypothesis first, then click on infected nodes to cure them!
+    </div>
+    
+    <div id="virusFeedback" class="feedback-box" style="display: none;">
+        <div class="feedback-title">Performance Analysis</div>
+        <div id="virusFeedbackContent"></div>
+    </div>
+</div>
+
+    <!-- Hypothesis Golf Game -->
+    <div class="game-container" id="golfGame">
+        <button class="back-btn" onclick="backToMenu()">← Back to Menu</button>
+        <button class="how-to-play-btn" onclick="showHowToPlay('golf')">How to Play</button>
+        <h2>HYPOTHESIS GOLF</h2>
+        
+        <div class="difficulty-selector">
+            <button class="difficulty-btn active" data-level="1">Beginner</button>
+            <button class="difficulty-btn" data-level="2">Intermediate</button>
+            <button class="difficulty-btn" data-level="3">Expert</button>
+        </div>
+        
+        <div class="score-display">Strokes: <span id="golfStrokes">0</span> | Par: <span id="golfPar">3</span></div>
+        <div class="timer">⏱️ <span id="golfTime">60</span>s</div>
+        
+        <div class="badge-container">
+            <div class="badge-tooltip">
+                <div class="badge bronze" id="golfBadge1">🥉</div>
+                <span class="tooltip-text">Bronze: Complete a hole</span>
+            </div>
+            <div class="badge-tooltip">
+                <div class="badge bronze badge-locked" id="golfBadge2">🥈</div>
+                <span class="tooltip-text">Silver: Complete under par</span>
+            </div>
+            <div class="badge-tooltip">
+                <div class="badge bronze badge-locked" id="golfBadge3">🥇</div>
+                <span class="tooltip-text">Gold: Find optimal path</span>
+            </div>
+        </div>
+        
+        <div class="tutorial-box">
+            <h3>Game Objective</h3>
+            <p>Modify your current hypothesis to match the target hypothesis in the fewest moves (strokes).</p>
+            
+            <h3>How to Play</h3>
+            <ol>
+                <li>Your current hypothesis is shown below</li>
+                <li>Use the operations to generalize (make more broad) or specialize (make more specific) your hypothesis</li>
+                <li>Each operation counts as one stroke</li>
+                <li>The ball moves closer to the hole as your hypothesis gets closer to the target</li>
+                <li>Try to reach the target hypothesis in as few strokes as possible!</li>
+            </ol>
+            
+            <h3>Understanding Hypotheses</h3>
+            <p>A hypothesis is a description of attributes. "?" means any value is acceptable for that attribute.</p>
+            <p><strong>Generalizing</strong> means making a hypothesis more broad by replacing specific values with "?"</p>
+            <p><strong>Specializing</strong> means making a hypothesis more specific by replacing "?" with actual values</p>
+        </div>
+        
+        <div class="golf-course">
+            <div class="golf-hole"></div>
+            <div class="golf-flag">🏁</div>
+            <div class="golf-ball" id="golfBall"></div>
+        </div>
+        
+        <div>
+            <h3>CURRENT HYPOTHESIS:</h3>
+            <div id="golfCurrentHypothesis" style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 5px; margin: 1rem 0;"></div>
+            
+            <h3>TARGET HYPOTHESIS:</h3>
+            <div id="golfTargetHypothesis" style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 5px; margin: 1rem 0;"></div>
+            
+            <h3>AVAILABLE OPERATIONS:</h3>
+            <div id="golfOperations" style="display: flex; gap: 10px; margin: 1rem 0; flex-wrap: wrap;"></div>
+        </div>
+        
+        <div id="golfMessage" class="message-box"></div>
+        
+        <div id="golfFeedback" class="feedback-box" style="display: none;">
+            <div class="feedback-title">Optimal Path</div>
+            <div class="optimal-path" id="golfOptimalPath"></div>
+            <div id="golfFeedbackContent"></div>
+        </div>
+    </div>
+
+    <!-- Data Dungeon Game -->
+    <div class="game-container" id="dungeonGame">
+        <button class="back-btn" onclick="backToMenu()">← Back to Menu</button>
+        <button class="how-to-play-btn" onclick="showHowToPlay('dungeon')">How to Play</button>
+        <h2>DATA DUNGEON</h2>
+        
+        <div class="difficulty-selector">
+            <button class="difficulty-btn active" data-level="1">Beginner</button>
+            <button class="difficulty-btn" data-level="2">Intermediate</button>
+            <button class="difficulty-btn" data-level="3">Expert</button>
+        </div>
+        
+        <div class="score-display">Level: <span id="dungeonLevel">1</span> | HP: <span id="dungeonHP">100</span></div>
+        
+        <div class="badge-container">
+            <div class="badge-tooltip">
+                <div class="badge bronze" id="dungeonBadge1">🥉</div>
+                <span class="tooltip-text">Bronze: Complete level 1</span>
+            </div>
+            <div class="badge-tooltip">
+                <div class="badge bronze badge-locked" id="dungeonBadge2">🥈</div>
+                <span class="tooltip-text">Silver: Complete level 3</span>
+            </div>
+            <div class="badge-tooltip">
+                <div class="badge bronze badge-locked" id="dungeonBadge3">🥇</div>
+                <span class="tooltip-text">Gold: Complete without losing HP</span>
+            </div>
+        </div>
+        
+        <div class="tutorial-box">
+            <h3>Game Objective</h3>
+            <p>Navigate through the dungeon to find the treasure while refining your hypothesis.</p>
+            
+            <h3>How to Play</h3>
+            <ol>
+                <li>You start in the center room (marked with a wizard)</li>
+                <li>Select a tool (generalization hammer or specialization dagger)</li>
+                <li>Click on adjacent rooms to move</li>
+                <li>Defeat monsters to modify your hypothesis</li>
+                <li>Find the treasure in the bottom-right corner to complete the level</li>
+            </ol>
+            
+            <h3>Tools</h3>
+            <p><strong>Generalization Hammer</strong>: Makes your hypothesis more broad (adds "?" to attributes)</p>
+            <p><strong>Specialization Dagger</strong>: Makes your hypothesis more specific (replaces "?" with actual values)</p>
+        </div>
+        
+        <div class="dungeon-grid" id="dungeonGrid"></div>
+        
+        <div>
+            <h3>EQUIPMENT:</h3>
+            <div style="display: flex; gap: 10px; margin: 1rem 0; flex-wrap: wrap;">
+                <button class="equipment-btn" data-tool="generalize">Generalization Hammer (∀)</button>
+                <button class="equipment-btn" data-tool="specialize">Specialization Dagger (∃)</button>
+            </div>
+            
+            <h3>CURRENT HYPOTHESIS:</h3>
+            <div id="dungeonHypothesis" style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 5px; margin: 1rem 0;"></div>
+        </div>
+        
+        <div id="dungeonMessage" class="message-box"></div>
+        
+        <div id="dungeonFeedback" class="feedback-box" style="display: none;">
+            <div class="feedback-title">Level Summary</div>
+            <div id="dungeonFeedbackContent"></div>
+        </div>
+    </div>
+
+    <!-- Feature Tetris Game -->
+    <div class="game-container" id="tetrisGame">
+        <button class="back-btn" onclick="backToMenu()">← Back to Menu</button>
+        <button class="how-to-play-btn" onclick="showHowToPlay('tetris')">How to Play</button>
+        <h2>FEATURE TETRIS</h2>
+        
+        <div class="difficulty-selector">
+            <button class="difficulty-btn active" data-level="1">Beginner</button>
+            <button class="difficulty-btn" data-level="2">Intermediate</button>
+            <button class="difficulty-btn" data-level="3">Expert</button>
+        </div>
+        
+        <div class="score-display">Score: <span id="tetrisScore">0</span> | Level: <span id="tetrisLevel">1</span></div>
+        <div class="timer">⏱️ <span id="tetrisTime">120</span>s</div>
+        
+        <div class="badge-container">
+            <div class="badge-tooltip">
+                <div class="badge bronze" id="tetrisBadge1">🥉</div>
+                <span class="tooltip-text">Bronze: Score 500 points</span>
+            </div>
+            <div class="badge-tooltip">
+                <div class="badge bronze badge-locked" id="tetrisBadge2">🥈</div>
+                <span class="tooltip-text">Silver: Reach level 3</span>
+            </div>
+            <div class="badge-tooltip">
+                <div class="badge bronze badge-locked" id="tetrisBadge3">🥇</div>
+                <span class="tooltip-text">Gold: Complete all hypotheses</span>
+            </div>
+        </div>
+        
+        <div class="tutorial-box">
+            <h3>Game Objective</h3>
+            <p>Arrange falling feature blocks to create complete hypotheses.</p>
+            
+            <h3>How to Play</h3>
+            <ol>
+                <li>Use arrow keys or buttons to move and rotate the falling pieces</li>
+                <li>Complete horizontal or vertical lines of features to form hypotheses</li>
+                <li>Each completed hypothesis earns points</li>
+                <li>Complete all possible hypotheses to level up</li>
+                <li>Game ends when time runs out or the grid fills up</li>
+            </ol>
+            
+            <h3>Controls</h3>
+            <ul>
+                <li><strong>← →</strong>: Move piece left/right</li>
+                <li><strong>↑</strong>: Rotate piece</li>
+                <li><strong>↓</strong>: Move piece down faster</li>
+            </ul>
+        </div>
+        
+        <div class="tetris-grid" id="tetrisGrid"></div>
+        
+        <div>
+            <h3>NEXT BLOCK:</h3>
+            <div id="tetrisNextBlock" style="font-size: 2rem; margin: 1rem 0;"></div>
+            
+            <h3>COMPLETE HYPOTHESES:</h3>
+            <div id="tetrisHypotheses" style="display: flex; gap: 10px; margin: 1rem 0; flex-wrap: wrap;"></div>
+        </div>
+        
+        <div style="margin-top: 1rem;">
+            <button id="tetrisLeft">←</button>
+            <button id="tetrisRotate">↻</button>
+            <button id="tetrisRight">→</button>
+            <button id="tetrisDown">↓</button>
+        </div>
+        
+        <div id="tetrisMessage" class="message-box"></div>
+        
+        <div id="tetrisFeedback" class="feedback-box" style="display: none;">
+            <div class="feedback-title">Game Analysis</div>
+            <div id="tetrisFeedbackContent"></div>
+        </div>
+    </div>
+
+    <!-- ML Detective Game -->
+    <div class="game-container" id="detectiveGame">
+        <button class="back-btn" onclick="backToMenu()">← Back to Menu</button>
+        <button class="how-to-play-btn" onclick="showHowToPlay('detective')">How to Play</button>
+        <h2>ML DETECTIVE</h2>
+        
+        <div class="difficulty-selector">
+            <button class="difficulty-btn active" data-level="1">Beginner</button>
+            <button class="difficulty-btn" data-level="2">Intermediate</button>
+            <button class="difficulty-btn" data-level="3">Expert</button>
+        </div>
+        
+        <div class="score-display">Case: <span id="detectiveCase">1</span> | Clues: <span id="detectiveClues">0/3</span></div>
+        
+        <div class="badge-container">
+            <div class="badge-tooltip">
+                <div class="badge bronze" id="detectiveBadge1">🥉</div>
+                <span class="tooltip-text">Bronze: Solve 1 case</span>
+            </div>
+            <div class="badge-tooltip">
+                <div class="badge bronze badge-locked" id="detectiveBadge2">🥈</div>
+                <span class="tooltip-text">Silver: Solve all cases</span>
+            </div>
+            <div class="badge-tooltip">
+                <div class="badge bronze badge-locked" id="detectiveBadge3">🥇</div>
+                <span class="tooltip-text">Gold: Solve without wrong accusations</span>
+            </div>
+        </div>
+        
+        <div class="tutorial-box">
+            <h3>Game Objective</h3>
+            <p>Determine the correct hypothesis that explains all witness statements.</p>
+            
+            <h3>How to Play</h3>
+            <ol>
+                <li>Read the witness statements (some may be locked at first)</li>
+                <li>Select suspects to reveal their partial hypotheses</li>
+                <li>Make an accusation when you think you know the full hypothesis</li>
+                <li>If wrong, you'll unlock more clues to help you</li>
+                <li>Solve all 3 cases to win!</li>
+            </ol>
+            
+            <h3>Tips</h3>
+            <p>Each suspect represents a partial hypothesis (with some attributes as "?"). Combine information from multiple suspects to find the complete hypothesis.</p>
+        </div>
+        
+        <div class="case-file">
+            <h3>CASE FILE #<span id="caseNumber">1</span></h3>
+            <p id="caseDescription">Determine the hypothesis that explains all witness statements.</p>
+            
+            <h4>WITNESS STATEMENTS:</h4>
+            <div id="witnessStatements"></div>
+        </div>
+        
+        <div class="suspect-grid" id="suspectGrid"></div>
+        
+        <div>
+            <h3>YOUR ACCUSATION:</h3>
+            <div id="detectiveAccusation" style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 5px; margin: 1rem 0;"></div>
+            <button id="makeAccusation">MAKE ACCUSATION</button>
+        </div>
+        
+        <div id="detectiveMessage" class="message-box"></div>
+        
+        <div id="detectiveFeedback" class="feedback-box" style="display: none;">
+            <div class="feedback-title">Case Analysis</div>
+            <div id="detectiveFeedbackContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // Background music setup
+        const bgMusic = document.getElementById('bgMusic');
+        const musicToggle = document.getElementById('musicToggle');
+        let musicPlaying = false;
+
+        // Try to autoplay music (may be blocked by browser)
+        function toggleMusic() {
+            if (musicPlaying) {
+                bgMusic.pause();
+                musicToggle.innerHTML = '<i class="fas fa-music"></i>';
+            } else {
+                bgMusic.play().catch(e => {
+                    alert("Audio playback blocked. Please interact with the page first.");
+                });
+                musicToggle.innerHTML = '<i class="fas fa-pause"></i>';
+            }
+            musicPlaying = !musicPlaying;
+        }
+
+        musicToggle.addEventListener('click', toggleMusic);
+
+        // Modal functionality
+        const modal = document.getElementById('howToPlayModal');
+        const closeModal = document.getElementById('closeModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalContent = document.getElementById('modalContent');
+
+        function showHowToPlay(game) {
+            let title = '';
+            let content = '';
+            
+            switch(game) {
+                case 'virus':
+                    title = 'How to Play: Concept Virus';
+                    content = `
+                        <h3>Game Objective</h3>
+                        <p>Cure all infected nodes by selecting the correct hypothesis that matches their attributes.</p>
+                        
+                        <h3>Detailed Instructions</h3>
+                        <ol>
+                            <li><strong>Select a hypothesis</strong> from the options at the bottom of the screen</li>
+                            <li><strong>Click on infected (red) nodes</strong> to try to cure them</li>
+                            <li>If your hypothesis exactly matches the node's attributes, it will be cured (turn green)</li>
+                            <li>If not, you'll get a time penalty (-2 seconds) and need to try a different hypothesis</li>
+                            <li>Cure all infected nodes before time runs out to win!</li>
+                        </ol>
+                        
+                        <h3>Learning About Find-S Algorithm</h3>
+                        <p>This game demonstrates the concept of hypothesis space search in machine learning. You're trying to find the most specific hypothesis that matches all positive examples (infected nodes).</p>
+                        <p>Each node has attributes like weather, temperature, and humidity. Your goal is to find the combination that matches all infected nodes.</p>
+                    `;
+                    break;
+                case 'golf':
+                    title = 'How to Play: Hypothesis Golf';
+                    content = `
+                        <h3>Game Objective</h3>
+                        <p>Modify your current hypothesis to match the target hypothesis in the fewest moves (strokes).</p>
+                        
+                        <h3>Detailed Instructions</h3>
+                        <ol>
+                            <li>Your <strong>current hypothesis</strong> is shown below the golf course</li>
+                            <li>Use the <strong>operation buttons</strong> to modify your hypothesis:
+                                <ul>
+                                    <li><strong>Generalize</strong> buttons make your hypothesis more broad (replace specific values with "?")</li>
+                                    <li><strong>Specialize</strong> buttons make your hypothesis more specific (replace "?" with actual values)</li>
+                                </ul>
+                            </li>
+                            <li>Each operation counts as one stroke</li>
+                            <li>The ball moves closer to the hole as your hypothesis gets closer to the target</li>
+                            <li>Try to reach the target hypothesis in as few strokes as possible!</li>
+                        </ol>
+                        
+                        <h3>Understanding Hypotheses</h3>
+                        <p>A hypothesis is a description of attributes. "?" means any value is acceptable for that attribute.</p>
+                        <p><strong>Example:</strong> "sunny,warm,?" means the weather must be sunny, temperature must be warm, and humidity can be anything.</p>
+                        <p>The target hypothesis is the most specific one that would be learned by the Find-S algorithm.</p>
+                    `;
+                    break;
+                case 'dungeon':
+                    title = 'How to Play: Data Dungeon';
+                    content = `
+                        <h3>Game Objective</h3>
+                        <p>Navigate through the dungeon to find the treasure while refining your hypothesis.</p>
+                        
+                        <h3>Detailed Instructions</h3>
+                        <ol>
+                            <li>You start in the center room (marked with a wizard)</li>
+                            <li><strong>Select a tool</strong> (generalization hammer or specialization dagger)</li>
+                            <li><strong>Click on adjacent rooms</strong> to move (you can only move to rooms next to your current position)</li>
+                            <li>When you enter a room with a monster:
+                                <ul>
+                                    <li>If you win (70% chance), the room is cleared and your hypothesis may change based on your tool</li>
+                                    <li>If you lose, you take 10 damage</li>
+                                </ul>
+                            </li>
+                            <li>Find the treasure in the bottom-right corner to complete the level</li>
+                            <li>Each level increases the dungeon's difficulty</li>
+                        </ol>
+                        
+                        <h3>Tools and Hypothesis</h3>
+                        <p><strong>Generalization Hammer</strong>: Makes your hypothesis more broad (adds "?" to attributes)</p>
+                        <p><strong>Specialization Dagger</strong>: Makes your hypothesis more specific (replaces "?" with actual values)</p>
+                        <p>Your hypothesis affects how you interact with data (monsters) in the dungeon.</p>
+                    `;
+                    break;
+                case 'tetris':
+                    title = 'How to Play: Feature Tetris';
+                    content = `
+                        <h3>Game Objective</h3>
+                        <p>Arrange falling feature blocks to create complete hypotheses.</p>
+                        
+                        <h3>Detailed Instructions</h3>
+                        <ol>
+                            <li><strong>Controls</strong>:
+                                <ul>
+                                    <li><strong>Arrow keys</strong> or on-screen buttons to move and rotate</li>
+                                    <li><strong>← →</strong>: Move piece left/right</li>
+                                    <li><strong>↑</strong> or Rotate button: Rotate piece</li>
+                                    <li><strong>↓</strong>: Move piece down faster</li>
+                                </ul>
+                            </li>
+                            <li>Pieces are made of feature blocks (like "sunny", "warm", etc.)</li>
+                            <li>Complete horizontal or vertical lines of features to form hypotheses</li>
+                            <li>Each completed hypothesis earns 100 points × current level</li>
+                            <li>Complete all possible hypotheses to level up (and get bonus time)</li>
+                            <li>Game ends when time runs out or the grid fills up</li>
+                        </ol>
+                        
+                        <h3>Scoring</h3>
+                        <ul>
+                            <li>Completing a row: 10 points × level</li>
+                            <li>Completing a hypothesis: 100 points × level</li>
+                            <li>Leveling up: +30 seconds bonus time</li>
+                        </ul>
+                    `;
+                    break;
+                case 'detective':
+                    title = 'How to Play: ML Detective';
+                    content = `
+                        <h3>Game Objective</h3>
+                        <p>Determine the correct hypothesis that explains all witness statements.</p>
+                        
+                        <h3>Detailed Instructions</h3>
+                        <ol>
+                            <li>Read the <strong>witness statements</strong> (some may be locked at first)</li>
+                            <li><strong>Select suspects</strong> to reveal their partial hypotheses</li>
+                            <li>Combine information from multiple suspects to determine the full hypothesis</li>
+                            <li>When ready, <strong>make an accusation</strong> by selecting a suspect and clicking the button</li>
+                            <li>If wrong, you'll unlock more clues to help you</li>
+                            <li>Solve all 3 cases to win!</li>
+                        </ol>
+                        
+                        <h3>Understanding the Case</h3>
+                        <p>Each suspect represents a partial hypothesis (with some attributes as "?"). For example:</p>
+                        <ul>
+                            <li>"sunny,?,?" means the weather must be sunny, but other attributes can be anything</li>
+                            <li>"?,warm,?" means the temperature must be warm, but other attributes can be anything</li>
+                        </ul>
+                        <p>Combine these to find the hypothesis that satisfies all witness statements.</p>
+                    `;
+                    break;
+            }
+            
+            modalTitle.textContent = title;
+            modalContent.innerHTML = content;
+            modal.style.display = 'flex';
+        }
+
+        closeModal.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+
+        // Game state management
+        let currentGame = null;
+        const games = ['virus', 'golf', 'dungeon', 'tetris', 'detective'];
+        let gameTimers = {};
+        let difficultyLevel = 1; // Default to beginner
+        
+        // Set up difficulty selector
+        document.querySelectorAll('.difficulty-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Remove active class from all buttons
+                document.querySelectorAll('.difficulty-btn').forEach(b => {
+                    b.classList.remove('active');
+                });
+                
+                // Add active class to clicked button
+                this.classList.add('active');
+                
+                // Set difficulty level
+                difficultyLevel = parseInt(this.dataset.level);
+                
+                // If game is already loaded, restart it with new difficulty
+                if (currentGame) {
+                    loadGame(currentGame);
+                }
+            });
+        });
+        
+        // Load a selected game
+        function loadGame(game) {
+            // Clear any existing timers
+            for (let timer in gameTimers) {
+                clearInterval(gameTimers[timer]);
+            }
+            gameTimers = {};
+            
+            // Hide all games and show selected one
+            games.forEach(g => {
+                document.getElementById(`${g}Game`).style.display = 'none';
+            });
+            document.getElementById('gameSelector').style.display = 'none';
+            document.getElementById(`${game}Game`).style.display = 'block';
+            currentGame = game;
+            
+            // Initialize the selected game
+            switch(game) {
+                case 'virus':
+                    initVirusGame();
+                    break;
+                case 'golf':
+                    initGolfGame();
+                    break;
+                case 'dungeon':
+                    initDungeonGame();
+                    break;
+                case 'tetris':
+                    initTetrisGame();
+                    break;
+                case 'detective':
+                    initDetectiveGame();
+                    break;
+            }
+        }
+        
+        // Return to main menu
+        function backToMenu() {
+            // Clear all game timers
+            for (let timer in gameTimers) {
+                clearInterval(gameTimers[timer]);
+            }
+            gameTimers = {};
+            
+            games.forEach(g => {
+                document.getElementById(`${g}Game`).style.display = 'none';
+            });
+            document.getElementById('gameSelector').style.display = 'grid';
+            currentGame = null;
+        }
+        
+        /* ===== CONCEPT VIRUS GAME ===== */
+        function initVirusGame() {
+            const virusGameState = {
+                nodes: [],
+                currentHypothesis: null,
+                score: 0,
+                timeLeft: difficultyLevel === 1 ? 90 : difficultyLevel === 2 ? 60 : 45,
+                infectedCount: difficultyLevel === 1 ? 3 : difficultyLevel === 2 ? 5 : 7,
+                hypotheses: [
+                    { name: "Sunny ∧ Warm ∧ High", value: "sunny,warm,high" },
+                    { name: "Sunny ∧ Warm ∧ Normal", value: "sunny,warm,normal" },
+                    { name: "Sunny ∧ Cool ∧ High", value: "sunny,cool,high" },
+                    { name: "Rainy ∧ Warm ∧ High", value: "rainy,warm,high" },
+                    { name: "Rainy ∧ Cool ∧ Normal", value: "rainy,cool,normal" },
+                    { name: "Sunny ∧ ? ∧ High", value: "sunny,?,high" },
+                    { name: "? ∧ Warm ∧ Normal", value: "?,warm,normal" }
+                ],
+                correctHypothesis: "sunny,warm,normal",
+                mismatchCount: 0,
+                perfectGame: true
+            };
+            
+            // Reset badges for this game
+            document.getElementById('virusBadge1').classList.add('badge-locked');
+            document.getElementById('virusBadge2').classList.add('badge-locked');
+            document.getElementById('virusBadge3').classList.add('badge-locked');
+            
+            // Create nodes
+            const network = document.getElementById('virusNetwork');
+            network.innerHTML = '';
+            
+            for (let i = 0; i < 10; i++) {
+                const node = document.createElement('div');
+                node.className = 'virus-node';
+                node.textContent = `Node ${i+1}`;
+                node.dataset.id = i;
+                
+                // Assign random attributes
+                const attributes = getRandomAttributes();
+                node.dataset.attributes = attributes;
+                
+                // First nodes are infected (red), others healthy (green)
+                if (i < virusGameState.infectedCount) {
+                    node.dataset.infected = 'true';
+                } else {
+                    node.dataset.infected = 'false';
+                    node.classList.add('cured');
+                }
+
+                // Position randomly (with padding)
+                node.style.left = `${Math.random() * 80 + 10}%`;
+                node.style.top = `${Math.random() * 80 + 10}%`;
+
+                // Click handler - show attributes and cure if possible
+                node.addEventListener('click', function() {
+                    const messageBox = document.getElementById('virusMessage');
+                    
+                    // Only show attributes if hypothesis is selected
+                    if (virusGameState.currentHypothesis) {
+                        messageBox.innerHTML = `<strong>${this.textContent}:</strong> ${formatAttributes(this.dataset.attributes)}`;
+                        
+                        if (this.dataset.infected === 'true') {
+                            if (this.dataset.attributes === virusGameState.currentHypothesis) {
+                                // Successful cure
+                                this.classList.add('cured');
+                                this.dataset.infected = 'false';
+                                virusGameState.score++;
+                                virusGameState.infectedCount--;
+                                
+                                document.getElementById('virusScore').textContent = virusGameState.score;
+                                document.getElementById('virusInfected').textContent = virusGameState.infectedCount;
+                                messageBox.innerHTML += `<br><span style="color: var(--success)">Perfect match! Node cured!</span>`;
+                                
+                                // Check for bronze badge
+                                if (virusGameState.score >= 3 && document.getElementById('virusBadge1').classList.contains('badge-locked')) {
+                                    document.getElementById('virusBadge1').classList.remove('badge-locked');
+                                }
+                                
+                                if (virusGameState.infectedCount === 0) {
+                                    clearInterval(gameTimers.virusTimer);
+                                    
+                                    // Check for silver badge (time-based)
+                                    if (virusGameState.timeLeft > (difficultyLevel === 1 ? 45 : difficultyLevel === 2 ? 30 : 15)) {
+                                        document.getElementById('virusBadge2').classList.remove('badge-locked');
+                                    }
+                                    
+                                    // Check for gold badge (no mismatches)
+                                    if (virusGameState.perfectGame) {
+                                        document.getElementById('virusBadge3').classList.remove('badge-locked');
+                                    }
+                                    
+                                    // Show feedback
+                                    showVirusFeedback(virusGameState);
+                                    
+                                    messageBox.innerHTML = `<span style="color: var(--success); font-weight: bold;">CONGRATULATIONS! You cured all nodes in ${virusGameState.timeLeft - virusGameState.timeLeft} seconds!</span>`;
+                                }
+                            } else {
+                                // Mismatch handling
+                                virusGameState.perfectGame = false;
+                                this.classList.add('mismatch');
+                                setTimeout(() => this.classList.remove('mismatch'), 500);
+                                
+                                virusGameState.mismatchCount = (virusGameState.mismatchCount || 0) + 1;
+                                virusGameState.timeLeft = Math.max(0, virusGameState.timeLeft - (difficultyLevel === 1 ? 1 : difficultyLevel === 2 ? 2 : 3)); // Penalty based on difficulty
+                                
+                                const mismatchDetails = getMismatchDetails(
+                                    this.dataset.attributes, 
+                                    virusGameState.currentHypothesis
+                                );
+                                
+                                messageBox.innerHTML += `
+                                    <br><span style="color: var(--danger)">
+                                        <strong>No match!</strong><br>
+                                        ${mismatchDetails}<br>
+                                        Time penalty: -${difficultyLevel === 1 ? 1 : difficultyLevel === 2 ? 2 : 3}s
+                                    </span>
+                                `;
+                                
+                                // Learning aid based on difficulty level
+                                if (difficultyLevel === 1 || 
+                                    (difficultyLevel === 2 && virusGameState.mismatchCount >= 2) ||
+                                    (difficultyLevel === 3 && virusGameState.mismatchCount >= 3)) {
+                                    messageBox.innerHTML += `<br><span style="color: var(--accent)">
+                                        Tip: Try a ${mismatchDetails.includes('specific') ? 'more specific' : 'more general'} hypothesis
+                                    </span>`;
+                                }
+                            }
+                        }
+                    } else {
+                        messageBox.innerHTML = `<span style="color: var(--accent)">Select a hypothesis first!</span>`;
+                    }
+                });
+                
+                network.appendChild(node);
+                virusGameState.nodes.push(node);
+            }
+            
+            // Create hypothesis options
+            const optionsContainer = document.getElementById('virusHypothesisOptions');
+            optionsContainer.innerHTML = '';
+            
+            // Filter hypotheses based on difficulty level
+            const availableHypotheses = difficultyLevel === 1 ? 
+                virusGameState.hypotheses.slice(0, 4) : 
+                difficultyLevel === 2 ? 
+                virusGameState.hypotheses.slice(0, 5) : 
+                virusGameState.hypotheses;
+            
+            availableHypotheses.forEach(hyp => {
+                const btn = document.createElement('button');
+                btn.className = 'hypothesis-btn';
+                btn.textContent = hyp.name;
+                btn.dataset.value = hyp.value;
+                btn.addEventListener('click', function() {
+                    // Remove selected class from all buttons
+                    document.querySelectorAll('.hypothesis-btn').forEach(b => {
+                        b.classList.remove('selected');
+                    });
+                    
+                    // Add selected class to clicked button
+                    this.classList.add('selected');
+                    
+                    virusGameState.currentHypothesis = hyp.value;
+                    document.getElementById('virusMessage').innerHTML = 
+                        `<strong>Selected hypothesis:</strong> ${hyp.name}<br>
+                         <small>Now click on infected nodes to try to cure them</small>`;
+                });
+                optionsContainer.appendChild(btn);
+            });
+            
+            // Start timer
+            document.getElementById('virusTime').textContent = virusGameState.timeLeft;
+            gameTimers.virusTimer = setInterval(() => {
+                virusGameState.timeLeft--;
+                document.getElementById('virusTime').textContent = virusGameState.timeLeft;
+                
+                if (virusGameState.timeLeft <= 0) {
+                    clearInterval(gameTimers.virusTimer);
+                    showVirusFeedback(virusGameState);
+                    document.getElementById('virusMessage').innerHTML = 
+                        `<span style="color: var(--danger); font-weight: bold;">Time's up! Game Over! The correct hypothesis was: ${virusGameState.correctHypothesis}</span>`;
+                }
+            }, 1000);
+            
+            // Update score display
+            document.getElementById('virusScore').textContent = virusGameState.score;
+            document.getElementById('virusInfected').textContent = virusGameState.infectedCount;
+            
+            // Hide feedback initially
+            document.getElementById('virusFeedback').style.display = 'none';
+        }
+
+        function showVirusFeedback(gameState) {
+            const feedbackBox = document.getElementById('virusFeedback');
+            const feedbackContent = document.getElementById('virusFeedbackContent');
+            
+            let feedbackHTML = `
+                <p><strong>Game Statistics:</strong></p>
+                <ul>
+                    <li>Nodes cured: ${gameState.score}</li>
+                    <li>Time remaining: ${gameState.timeLeft}s</li>
+                    <li>Mismatches: ${gameState.mismatchCount}</li>
+                </ul>
+            `;
+            
+            if (gameState.infectedCount === 0) {
+                feedbackHTML += `
+                    <p style="color: var(--success)"><strong>Success!</strong> You found the correct hypothesis: ${gameState.correctHypothesis}</p>
+                    <p>The Find-S algorithm works by starting with the most specific hypothesis and gradually generalizing it to cover all positive examples while excluding negative ones.</p>
+                `;
+            } else {
+                feedbackHTML += `
+                    <p style="color: var(--danger)"><strong>Challenge:</strong> You didn't cure all nodes in time.</p>
+                    <p>Remember that the Find-S algorithm finds the most specific hypothesis that fits all positive examples. Try to look for patterns in the nodes you successfully cured.</p>
+                `;
+            }
+            
+            feedbackContent.innerHTML = feedbackHTML;
+            feedbackBox.style.display = 'block';
+        }
+
+        function getRandomAttributes() {
+            const weather = ['sunny', 'rainy'][Math.floor(Math.random() * 2)];
+            const temp = ['warm', 'cool'][Math.floor(Math.random() * 2)];
+            const humidity = ['high', 'normal'][Math.floor(Math.random() * 2)];
+            return `${weather},${temp},${humidity}`;
+        }
+
+        function formatAttributes(attrs) {
+            const [weather, temp, humidity] = attrs.split(',');
+            return `Weather: ${weather}, Temperature: ${temp}, Humidity: ${humidity}`;
+        }
+
+        function getMismatchDetails(nodeAttrs, hypothesis) {
+            const [nW, nT, nH] = nodeAttrs.split(',');
+            const [hW, hT, hH] = hypothesis.split(',');
+            
+            let issues = [];
+            if (hW !== '?' && hW !== nW) issues.push("Weather");
+            if (hT !== '?' && hT !== nT) issues.push("Temperature");
+            if (hH !== '?' && hH !== nH) issues.push("Humidity");
+            
+            return issues.length 
+                ? `Mismatched attributes: ${issues.join(', ')}`
+                : `Hypothesis should be more specific`;
+        }
+        
+        /* ===== HYPOTHESIS GOLF GAME ===== */
+        function initGolfGame() {
+            const golfGameState = {
+                strokes: 0,
+                timeLeft: difficultyLevel === 1 ? 90 : difficultyLevel === 2 ? 60 : 45,
+                par: difficultyLevel === 1 ? 5 : difficultyLevel === 2 ? 4 : 3,
+                currentHypothesis: "sunny,cool,high,weak",
+                targetHypothesis: "sunny,warm,normal,strong",
+                operations: [
+                    { name: "Generalize Weather", apply: (h) => h.replace(/sunny|rainy/, "?") },
+                    { name: "Generalize Temp", apply: (h) => h.replace(/warm|cool/, "?") },
+                    { name: "Generalize Humidity", apply: (h) => h.replace(/high|normal/, "?") },
+                    { name: "Generalize Wind", apply: (h) => h.replace(/weak|strong/, "?") },
+                    { name: "Specialize Weather (Sunny)", apply: (h) => h.split(',')[0] === '?' ? "sunny," + h.split(',').slice(1).join(',') : h },
+                    { name: "Specialize Weather (Rainy)", apply: (h) => h.split(',')[0] === '?' ? "rainy," + h.split(',').slice(1).join(',') : h },
+                    { name: "Specialize Temp (Warm)", apply: (h) => h.split(',')[1] === '?' ? h.split(',')[0] + ",warm," + h.split(',').slice(2).join(',') : h },
+                    { name: "Specialize Temp (Cool)", apply: (h) => h.split(',')[1] === '?' ? h.split(',')[0] + ",cool," + h.split(',').slice(2).join(',') : h },
+                    { name: "Specialize Humidity (High)", apply: (h) => h.split(',')[2] === '?' ? h.split(',').slice(0,2).join(',') + ",high," + h.split(',')[3] : h },
+                    { name: "Specialize Humidity (Normal)", apply: (h) => h.split(',')[2] === '?' ? h.split(',').slice(0,2).join(',') + ",normal," + h.split(',')[3] : h },
+                    { name: "Specialize Wind (Weak)", apply: (h) => h.split(',')[3] === '?' ? h.split(',').slice(0,3).join(',') + ",weak" : h },
+                    { name: "Specialize Wind (Strong)", apply: (h) => h.split(',')[3] === '?' ? h.split(',').slice(0,3).join(',') + ",strong" : h }
+                ],
+                gameWon: false
+            };
+            
+            // Reset badges for this game
+            document.getElementById('golfBadge1').classList.add('badge-locked');
+            document.getElementById('golfBadge2').classList.add('badge-locked');
+            document.getElementById('golfBadge3').classList.add('badge-locked');
+            
+            // Update display
+            document.getElementById('golfStrokes').textContent = golfGameState.strokes;
+            document.getElementById('golfPar').textContent = golfGameState.par;
+            document.getElementById('golfTime').textContent = golfGameState.timeLeft;
+            
+            renderGolfHypothesis(golfGameState.currentHypothesis);
+            document.getElementById('golfTargetHypothesis').textContent = formatHypothesis(golfGameState.targetHypothesis);
+            updateGolfBallPosition(golfGameState);
+            
+            // Show target hypothesis in message box
+            document.getElementById('golfMessage').innerHTML = `
+                <strong>Target Hypothesis:</strong> ${formatHypothesis(golfGameState.targetHypothesis)}<br>
+                <small>Use the operations below to modify your current hypothesis to match the target</small>
+            `;
+            
+            // Create operations
+            const operationsContainer = document.getElementById('golfOperations');
+            operationsContainer.innerHTML = '';
+            
+            // Filter operations based on difficulty
+            const availableOperations = difficultyLevel === 1 ? 
+                golfGameState.operations.slice(0, 8) : 
+                difficultyLevel === 2 ? 
+                golfGameState.operations.slice(0, 10) : 
+                golfGameState.operations;
+            
+            availableOperations.forEach(op => {
+                const btn = document.createElement('button');
+                btn.className = 'hypothesis-btn';
+                btn.textContent = op.name;
+                btn.addEventListener('click', () => {
+                    if (golfGameState.gameWon) return;
+                    
+                    golfGameState.strokes++;
+                    golfGameState.currentHypothesis = op.apply(golfGameState.currentHypothesis);
+                    document.getElementById('golfStrokes').textContent = golfGameState.strokes;
+                    renderGolfHypothesis(golfGameState.currentHypothesis);
+                    updateGolfBallPosition(golfGameState);
+                    
+                    // Check win condition
+                    if (golfGameState.currentHypothesis === golfGameState.targetHypothesis) {
+                        golfGameState.gameWon = true;
+                        clearInterval(gameTimers.golfTimer);
+                        
+                        // Check for bronze badge
+                        document.getElementById('golfBadge1').classList.remove('badge-locked');
+                        
+                        // Check for silver badge (under par)
+                        if (golfGameState.strokes <= golfGameState.par) {
+                            document.getElementById('golfBadge2').classList.remove('badge-locked');
+                        }
+                        
+                        // Check for gold badge (optimal path)
+                        const optimalPath = findOptimalPath(golfGameState);
+                        if (golfGameState.strokes <= optimalPath.length) {
+                            document.getElementById('golfBadge3').classList.remove('badge-locked');
+                        }
+                        
+                        // Show feedback
+                        showGolfFeedback(golfGameState);
+                        
+                        document.getElementById('golfMessage').innerHTML = 
+                            `<span style="color: var(--success); font-weight: bold;">
+                                Hole in ${golfGameState.strokes}! 
+                                ${golfGameState.strokes <= golfGameState.par ? "Great job!" : "Try to beat par next time!"}
+                            </span>`;
+                    }
+                });
+                operationsContainer.appendChild(btn);
+            });
+            
+            // Start timer
+            gameTimers.golfTimer = setInterval(() => {
+                golfGameState.timeLeft--;
+                document.getElementById('golfTime').textContent = golfGameState.timeLeft;
+                
+                if (golfGameState.timeLeft <= 0 && !golfGameState.gameWon) {
+                    clearInterval(gameTimers.golfTimer);
+                    showGolfFeedback(golfGameState);
+                    document.getElementById('golfMessage').innerHTML = 
+                        `<span style="color: var(--danger); font-weight: bold;">Game Over! Time's up! The target was: ${formatHypothesis(golfGameState.targetHypothesis)}</span>`;
+                }
+            }, 1000);
+            
+            // Hide feedback initially
+            document.getElementById('golfFeedback').style.display = 'none';
+        }
+        
+        function showGolfFeedback(gameState) {
+            const feedbackBox = document.getElementById('golfFeedback');
+            const feedbackContent = document.getElementById('golfFeedbackContent');
+            const optimalPathContainer = document.getElementById('golfOptimalPath');
+            
+            // Find optimal path
+            const optimalPath = findOptimalPath(gameState);
+            
+            // Display optimal path
+            optimalPathContainer.innerHTML = '';
+            optimalPath.forEach((step, i) => {
+                const stepEl = document.createElement('div');
+                stepEl.className = 'path-step';
+                stepEl.textContent = formatHypothesis(step);
+                if (i === 0) stepEl.classList.add('current');
+                optimalPathContainer.appendChild(stepEl);
+            });
+            
+            let feedbackHTML = `
+                <p><strong>Game Statistics:</strong></p>
+                <ul>
+                    <li>Strokes taken: ${gameState.strokes}</li>
+                    <li>Par: ${gameState.par}</li>
+                    <li>Optimal strokes: ${optimalPath.length}</li>
+                </ul>
+            `;
+            
+            if (gameState.gameWon) {
+                feedbackHTML += `
+                    <p style="color: var(--success)"><strong>Success!</strong> You found the target hypothesis.</p>
+                    <p>The Find-S algorithm would take ${optimalPath.length} steps to reach this solution by generalizing only when necessary.</p>
+                `;
+                
+                if (gameState.strokes > optimalPath.length) {
+                    feedbackHTML += `
+                        <p><strong>Improvement Tip:</strong> Try to follow the optimal path shown above. The Find-S algorithm generalizes only when it encounters a positive example that doesn't match the current hypothesis.</p>
+                    `;
+                }
+            } else {
+                feedbackHTML += `
+                    <p style="color: var(--danger)"><strong>Challenge:</strong> You didn't reach the target in time.</p>
+                    <p>Remember that the Find-S algorithm starts with the most specific hypothesis and generalizes only when necessary to cover positive examples.</p>
+                `;
+            }
+            
+            feedbackContent.innerHTML = feedbackHTML;
+            feedbackBox.style.display = 'block';
+        }
+        
+        function findOptimalPath(gameState) {
+            // This is a simplified optimal path for demonstration
+            // In a real scenario, you'd implement a proper pathfinding algorithm
+            const path = [];
+            let current = "sunny,cool,high,weak";
+            
+            path.push(current);
+            
+            // Specialize temperature to warm
+            current = "sunny,warm,high,weak";
+            path.push(current);
+            
+            // Specialize humidity to normal
+            current = "sunny,warm,normal,weak";
+            path.push(current);
+            
+            // Specialize wind to strong
+            current = "sunny,warm,normal,strong";
+            path.push(current);
+            
+            return path;
+        }
+        
+        function renderGolfHypothesis(hypothesis) {
+            const parts = hypothesis.split(',');
+            const display = parts.map(p => p === '?' ? 'ANY' : p).join(' ∧ ');
+            document.getElementById('golfCurrentHypothesis').textContent = display;
+        }
+        
+        function updateGolfBallPosition(gameState) {
+            const similarity = calculateHypothesisSimilarity(
+                gameState.currentHypothesis, 
+                gameState.targetHypothesis
+            );
+            const ball = document.getElementById('golfBall');
+            const courseWidth = document.querySelector('.golf-course').offsetWidth;
+            ball.style.left = `${50 + similarity * (courseWidth - 150)}px`;
+        }
+        
+        function calculateHypothesisSimilarity(h1, h2) {
+            const parts1 = h1.split(',');
+            const parts2 = h2.split(',');
+            let matches = 0;
+            
+            for (let i = 0; i < parts1.length; i++) {
+                if (parts1[i] === '?' || parts2[i] === '?' || parts1[i] === parts2[i]) {
+                    matches++;
+                }
+            }
+            
+            return matches / parts1.length;
+        }
+        
+        /* ===== DATA DUNGEON GAME ===== */
+        function initDungeonGame() {
+            const dungeonGameState = {
+                level: 1,
+                hp: 100,
+                currentHypothesis: "?,?,?",
+                selectedTool: null,
+                rooms: [],
+                playerPosition: 12,
+                treasurePosition: 24,
+                damageTaken: 0,
+                perfectGame: true
+            };
+            
+            // Reset badges for this game
+            document.getElementById('dungeonBadge1').classList.add('badge-locked');
+            document.getElementById('dungeonBadge2').classList.add('badge-locked');
+            document.getElementById('dungeonBadge3').classList.add('badge-locked');
+            
+            // Update display
+            document.getElementById('dungeonLevel').textContent = dungeonGameState.level;
+            document.getElementById('dungeonHP').textContent = dungeonGameState.hp;
+            document.getElementById('dungeonHypothesis').textContent = 
+                formatHypothesis(dungeonGameState.currentHypothesis);
+            
+            // Create dungeon
+            const dungeonGrid = document.getElementById('dungeonGrid');
+            dungeonGrid.innerHTML = '';
+            
+            for (let i = 0; i < 25; i++) {
+                const room = document.createElement('div');
+                room.className = 'dungeon-room';
+                room.dataset.id = i;
+                
+                if (i === dungeonGameState.playerPosition) { // Starting room
+                    room.classList.add('cleared');
+                    room.innerHTML = '<div class="dungeon-monster">🧙</div>';
+                } else if (i === dungeonGameState.treasurePosition) { // Treasure room
+                    room.innerHTML = '<div class="dungeon-monster">💰</div>';
+                } else if (Math.random() > (difficultyLevel === 1 ? 0.7 : difficultyLevel === 2 ? 0.5 : 0.3)) { // Monster room
+                    room.innerHTML = '<div class="dungeon-monster">👹</div>';
+                }
+                
+                room.addEventListener('click', () => handleRoomClick(room, dungeonGameState));
+                dungeonGrid.appendChild(room);
+                dungeonGameState.rooms.push(room);
+            }
+            
+            // Set up tools
+            document.querySelectorAll('.equipment-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    dungeonGameState.selectedTool = this.dataset.tool;
+                    document.getElementById('dungeonMessage').innerHTML = 
+                        `<span style="color: var(--accent)">Selected: ${this.textContent}</span>`;
+                });
+            });
+            
+            // Initial message
+            document.getElementById('dungeonMessage').innerHTML = `
+                <strong>Welcome to Data Dungeon!</strong><br>
+                <small>Select a tool and click on adjacent rooms to move. Find the treasure (💰) to complete the level.</small>
+            `;
+            
+            // Hide feedback initially
+            document.getElementById('dungeonFeedback').style.display = 'none';
+        }
+        
+        function showDungeonFeedback(gameState) {
+            const feedbackBox = document.getElementById('dungeonFeedback');
+            const feedbackContent = document.getElementById('dungeonFeedbackContent');
+            
+            let feedbackHTML = `
+                <p><strong>Level Statistics:</strong></p>
+                <ul>
+                    <li>HP remaining: ${gameState.hp}</li>
+                    <li>Damage taken: ${gameState.damageTaken}</li>
+                    <li>Final hypothesis: ${formatHypothesis(gameState.currentHypothesis)}</li>
+                </ul>
+            `;
+            
+            if (gameState.hp > 0) {
+                feedbackHTML += `
+                    <p style="color: var(--success)"><strong>Success!</strong> You found the treasure!</p>
+                    <p>Your hypothesis evolved to: ${formatHypothesis(gameState.currentHypothesis)}</p>
+                `;
+                
+                // Check for bronze badge
+                if (gameState.level >= 1 && document.getElementById('dungeonBadge1').classList.contains('badge-locked')) {
+                    document.getElementById('dungeonBadge1').classList.remove('badge-locked');
+                }
+                
+                // Check for silver badge
+                if (gameState.level >= 3 && document.getElementById('dungeonBadge2').classList.contains('badge-locked')) {
+                    document.getElementById('dungeonBadge2').classList.remove('badge-locked');
+                }
+                
+                // Check for gold badge
+                if (gameState.damageTaken === 0 && document.getElementById('dungeonBadge3').classList.contains('badge-locked')) {
+                    document.getElementById('dungeonBadge3').classList.remove('badge-locked');
+                }
+                
+                // Continue to next level if not max level
+                if (gameState.level < 5) {
+                    feedbackHTML += `<p>Preparing for level ${gameState.level + 1}...</p>`;
+                    setTimeout(() => {
+                        gameState.level++;
+                        initDungeonGame();
+                    }, 2000);
+                } else {
+                    feedbackHTML += `<p style="color: var(--accent)"><strong>Congratulations!</strong> You completed all levels!</p>`;
+                }
+            } else {
+                feedbackHTML += `
+                    <p style="color: var(--danger)"><strong>Defeat!</strong> You ran out of HP.</p>
+                    <p>Try to be more strategic with your tool selection. Remember that generalization makes your hypothesis broader while specialization makes it more specific.</p>
+                `;
+            }
+            
+            feedbackContent.innerHTML = feedbackHTML;
+            feedbackBox.style.display = 'block';
+        }
+        
+        function formatHypothesis(hyp) {
+            const parts = hyp.split(',');
+            const labels = ['Weather', 'Temp', 'Humidity'];
+            return parts.map((p, i) => `${labels[i]}: ${p === '?' ? 'ANY' : p}`).join(' | ');
+        }
+        
+        function handleRoomClick(room, gameState) {
+            const roomId = parseInt(room.dataset.id);
+            const playerPos = gameState.playerPosition;
+            
+            // Check if room is adjacent to player
+            const isAdjacent = (
+                roomId === playerPos - 1 || roomId === playerPos + 1 || 
+                roomId === playerPos - 5 || roomId === playerPos + 5
+            );
+            
+            if (!isAdjacent) {
+                document.getElementById('dungeonMessage').innerHTML = 
+                    `<span style="color: var(--danger)">You can only move to adjacent rooms!</span>`;
+                return;
+            }
+            
+            if (room.classList.contains('cleared')) {
+                // Move to cleared room
+                gameState.rooms[gameState.playerPosition].innerHTML = '';
+                gameState.playerPosition = roomId;
+                gameState.rooms[roomId].innerHTML = '<div class="dungeon-monster">🧙</div>';
+                document.getElementById('dungeonMessage').innerHTML = 
+                    `<span>Moved to room ${roomId + 1}</span>`;
+                return;
+            }
+            
+            if (gameState.selectedTool === null) {
+                document.getElementById('dungeonMessage').innerHTML = 
+                    `<span style="color: var(--danger)">Please select a tool first!</span>`;
+                return;
+            }
+            
+            if (room.querySelector('.dungeon-monster')) {
+                // Combat logic
+                const winChance = difficultyLevel === 1 ? 0.8 : difficultyLevel === 2 ? 0.7 : 0.6;
+                const win = Math.random() > (1 - winChance);
+                
+                if (win) {
+                    room.classList.add('cleared');
+                    document.getElementById('dungeonMessage').innerHTML = 
+                        `<span style="color: var(--success)">Monster defeated! Room cleared!</span>`;
+                    
+                    // Move player to this room
+                    gameState.rooms[gameState.playerPosition].innerHTML = '';
+                    gameState.playerPosition = roomId;
+                    gameState.rooms[roomId].innerHTML = '<div class="dungeon-monster">🧙</div>';
+                    
+                    // Update hypothesis based on tool
+                    if (gameState.selectedTool === 'generalize') {
+                        const parts = gameState.currentHypothesis.split(',');
+                        const randomIdx = Math.floor(Math.random() * parts.length);
+                        if (parts[randomIdx] !== '?') {
+                            parts[randomIdx] = '?';
+                            gameState.currentHypothesis = parts.join(',');
+                            document.getElementById('dungeonHypothesis').textContent = 
+                                formatHypothesis(gameState.currentHypothesis);
+                            document.getElementById('dungeonMessage').innerHTML += 
+                                `<br>Your hypothesis became more general: ${formatHypothesis(gameState.currentHypothesis)}`;
+                        }
+                    } else if (gameState.selectedTool === 'specialize') {
+                        const parts = gameState.currentHypothesis.split(',');
+                        const randomIdx = Math.floor(Math.random() * parts.length);
+                        if (parts[randomIdx] === '?') {
+                            const options = {
+                                0: ['sunny', 'rainy'],
+                                1: ['warm', 'cool'],
+                                2: ['high', 'normal']
+                            }[randomIdx];
+                            parts[randomIdx] = options[Math.floor(Math.random() * options.length)];
+                            gameState.currentHypothesis = parts.join(',');
+                            document.getElementById('dungeonHypothesis').textContent = 
+                                formatHypothesis(gameState.currentHypothesis);
+                            document.getElementById('dungeonMessage').innerHTML += 
+                                `<br>Your hypothesis became more specific: ${formatHypothesis(gameState.currentHypothesis)}`;
+                        }
+                    }
+                    
+                    // Check if treasure found
+                    if (roomId === gameState.treasurePosition) {
+                        showDungeonFeedback(gameState);
+                        document.getElementById('dungeonMessage').innerHTML = 
+                            `<span style="color: var(--success); font-weight: bold;">
+                                You found the treasure! Level complete!
+                            </span>`;
+                    }
+                } else {
+                    gameState.perfectGame = false;
+                    gameState.hp -= 10;
+                    gameState.damageTaken += 10;
+                    document.getElementById('dungeonHP').textContent = gameState.hp;
+                    document.getElementById('dungeonMessage').innerHTML = 
+                        `<span style="color: var(--danger)">Ouch! Monster hit you! -10 HP</span>`;
+                    
+                    if (gameState.hp <= 0) {
+                        showDungeonFeedback(gameState);
+                        document.getElementById('dungeonMessage').innerHTML = 
+                            `<span style="color: var(--danger); font-weight: bold;">Game Over! You ran out of HP!</span>`;
+                    }
+                }
+            } else {
+                // Empty room
+                room.classList.add('cleared');
+                document.getElementById('dungeonMessage').innerHTML = 
+                    `<span>Empty room. Nothing happened.</span>`;
+                
+                // Move player to this room
+                gameState.rooms[gameState.playerPosition].innerHTML = '';
+                gameState.playerPosition = roomId;
+                gameState.rooms[roomId].innerHTML = '<div class="dungeon-monster">🧙</div>';
+            }
+        }
+        
+        /* ===== FEATURE TETRIS GAME ===== */
+        function initTetrisGame() {
+            const tetrisGameState = {
+                score: 0,
+                level: 1,
+                timeLeft: difficultyLevel === 1 ? 180 : difficultyLevel === 2 ? 120 : 90,
+                grid: Array(8).fill().map(() => Array(8).fill(null)),
+                currentPiece: null,
+                nextPiece: null,
+                currentPiecePosition: { row: 0, col: 3 },
+                completedHypotheses: [],
+                possibleHypotheses: [
+                    "sunny,warm,high,weak",
+                    "sunny,warm,normal,strong",
+                    "rainy,cool,high,weak",
+                    "rainy,warm,normal,strong"
+                ],
+                gameActive: true,
+                linesCleared: 0
+            };
+            
+            // Reset badges for this game
+            document.getElementById('tetrisBadge1').classList.add('badge-locked');
+            document.getElementById('tetrisBadge2').classList.add('badge-locked');
+            document.getElementById('tetrisBadge3').classList.add('badge-locked');
+            
+            // Initialize grid
+            renderTetrisGrid(tetrisGameState);
+            
+            // Generate first piece
+            generateNewPiece(tetrisGameState);
+            
+            // Set up controls
+            document.getElementById('tetrisLeft').addEventListener('click', () => movePiece('left', tetrisGameState));
+            document.getElementById('tetrisRight').addEventListener('click', () => movePiece('right', tetrisGameState));
+            document.getElementById('tetrisDown').addEventListener('click', () => movePiece('down', tetrisGameState));
+            document.getElementById('tetrisRotate').addEventListener('click', () => rotatePiece(tetrisGameState));
+            
+            // Keyboard controls
+            document.addEventListener('keydown', (e) => {
+                if (!tetrisGameState.gameActive) return;
+                
+                switch(e.key) {
+                    case 'ArrowLeft':
+                        movePiece('left', tetrisGameState);
+                        break;
+                    case 'ArrowRight':
+                        movePiece('right', tetrisGameState);
+                        break;
+                    case 'ArrowDown':
+                        movePiece('down', tetrisGameState);
+                        break;
+                    case 'ArrowUp':
+                        rotatePiece(tetrisGameState);
+                        break;
+                }
+            });
+            
+            // Update display
+            document.getElementById('tetrisScore').textContent = tetrisGameState.score;
+            document.getElementById('tetrisLevel').textContent = tetrisGameState.level;
+            document.getElementById('tetrisTime').textContent = tetrisGameState.timeLeft;
+            
+            // Start timer
+            gameTimers.tetrisTimer = setInterval(() => {
+                tetrisGameState.timeLeft--;
+                document.getElementById('tetrisTime').textContent = tetrisGameState.timeLeft;
+                
+                if (tetrisGameState.timeLeft <= 0) {
+                    clearInterval(gameTimers.tetrisTimer);
+                    tetrisGameState.gameActive = false;
+                    showTetrisFeedback(tetrisGameState);
+                    document.getElementById('tetrisMessage').innerHTML = 
+                        `<span style="color: var(--danger); font-weight: bold;">Game Over! Time's up!</span>`;
+                }
+                
+                // Auto move down every second
+                movePiece('down', tetrisGameState);
+            }, 1000);
+            
+            // Initial message
+            document.getElementById('tetrisMessage').innerHTML = `
+                <strong>Welcome to Feature Tetris!</strong><br>
+                <small>Use arrow keys or buttons to move and rotate pieces. Complete hypotheses to score points!</small>
+            `;
+            
+            // Hide feedback initially
+            document.getElementById('tetrisFeedback').style.display = 'none';
+        }
+        
+        function showTetrisFeedback(gameState) {
+            const feedbackBox = document.getElementById('tetrisFeedback');
+            const feedbackContent = document.getElementById('tetrisFeedbackContent');
+            
+            // Check for bronze badge
+            if (gameState.score >= 500 && document.getElementById('tetrisBadge1').classList.contains('badge-locked')) {
+                document.getElementById('tetrisBadge1').classList.remove('badge-locked');
+            }
+            
+            // Check for silver badge
+            if (gameState.level >= 3 && document.getElementById('tetrisBadge2').classList.contains('badge-locked')) {
+                document.getElementById('tetrisBadge2').classList.remove('badge-locked');
+            }
+            
+            // Check for gold badge
+            if (gameState.completedHypotheses.length === gameState.possibleHypotheses.length && 
+                document.getElementById('tetrisBadge3').classList.contains('badge-locked')) {
+                document.getElementById('tetrisBadge3').classList.remove('badge-locked');
+            }
+            
+            let feedbackHTML = `
+                <p><strong>Game Statistics:</strong></p>
+                <ul>
+                    <li>Score: ${gameState.score}</li>
+                    <li>Level reached: ${gameState.level}</li>
+                    <li>Lines cleared: ${gameState.linesCleared}</li>
+                    <li>Hypotheses completed: ${gameState.completedHypotheses.length}/${gameState.possibleHypotheses.length}</li>
+                </ul>
+            `;
+            
+            if (gameState.completedHypotheses.length === gameState.possibleHypotheses.length) {
+                feedbackHTML += `
+                    <p style="color: var(--success)"><strong>Excellent!</strong> You completed all possible hypotheses!</p>
+                    <p>This demonstrates your ability to recognize patterns in the data, similar to how machine learning algorithms identify features.</p>
+                `;
+            } else {
+                feedbackHTML += `
+                    <p>Try to complete all possible hypotheses next time. Look for patterns in the features that match the possible combinations.</p>
+                `;
+            }
+            
+            feedbackContent.innerHTML = feedbackHTML;
+            feedbackBox.style.display = 'block';
+        }
+        
+        function generateNewPiece(gameState) {
+            const features = ['sunny', 'rainy', 'warm', 'cool', 'high', 'normal', 'weak', 'strong'];
+            
+            // Set current piece to next piece or generate new one
+            gameState.currentPiece = gameState.nextPiece || {
+                shape: [
+                    [features[Math.floor(Math.random() * features.length)], null],
+                    [null, features[Math.floor(Math.random() * features.length)]]
+                ],
+                rotation: 0
+            };
+            
+            gameState.currentPiecePosition = { row: 0, col: 3 };
+            
+            // Generate next piece
+            gameState.nextPiece = {
+                shape: [
+                    [features[Math.floor(Math.random() * features.length)], null],
+                    [null, features[Math.floor(Math.random() * features.length)]]
+                ],
+                rotation: 0
+            };
+            
+            // Display next piece
+            document.getElementById('tetrisNextBlock').innerHTML = 
+                `${gameState.nextPiece.shape[0][0] || '&nbsp;'}<br>${gameState.nextPiece.shape[1][1] || '&nbsp;'}`;
+            
+            // Check if game over (no space for new piece)
+            if (!isValidPosition(gameState.currentPiecePosition, gameState.currentPiece, gameState.grid)) {
+                gameState.gameActive = false;
+                clearInterval(gameTimers.tetrisTimer);
+                showTetrisFeedback(gameState);
+                document.getElementById('tetrisMessage').innerHTML = 
+                    `<span style="color: var(--danger); font-weight: bold;">Game Over! No more space!</span>`;
+            }
+        }
+        
+        function isValidPosition(position, piece, grid) {
+            for (let row = 0; row < piece.shape.length; row++) {
+                for (let col = 0; col < piece.shape[row].length; col++) {
+                    if (piece.shape[row][col]) {
+                        const newRow = position.row + row;
+                        const newCol = position.col + col;
+                        
+                        if (newRow >= grid.length || newCol >= grid[0].length || newCol < 0) {
+                            return false;
+                        }
+                        
+                        if (newRow >= 0 && grid[newRow][newCol]) {
+                            return false;
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+        
+        function movePiece(direction, gameState) {
+            if (!gameState.gameActive) return;
+            
+            const newPosition = {...gameState.currentPiecePosition};
+            
+            switch(direction) {
+                case 'left':
+                    newPosition.col--;
+                    break;
+                case 'right':
+                    newPosition.col++;
+                    break;
+                case 'down':
+                    newPosition.row++;
+                    break;
+            }
+            
+            if (isValidPosition(newPosition, gameState.currentPiece, gameState.grid)) {
+                gameState.currentPiecePosition = newPosition;
+                
+                // If moving down and can't move further, lock the piece
+                if (direction === 'down' && 
+                    !isValidPosition(
+                        {row: newPosition.row + 1, col: newPosition.col}, 
+                        gameState.currentPiece, 
+                        gameState.grid
+                    )) {
+                    lockPiece(gameState);
+                }
+            } else if (direction === 'down') {
+                lockPiece(gameState);
+            }
+            
+            renderTetrisGrid(gameState);
+        }
+        
+        function rotatePiece(gameState) {
+            if (!gameState.gameActive) return;
+            
+            const newPiece = {
+                shape: [
+                    [gameState.currentPiece.shape[1][1], gameState.currentPiece.shape[0][1]],
+                    [gameState.currentPiece.shape[1][0], gameState.currentPiece.shape[0][0]]
+                ],
+                rotation: (gameState.currentPiece.rotation + 90) % 360
+            };
+            
+            if (isValidPosition(gameState.currentPiecePosition, newPiece, gameState.grid)) {
+                gameState.currentPiece = newPiece;
+            }
+            
+            renderTetrisGrid(gameState);
+        }
+        
+        function lockPiece(gameState) {
+            // Add piece to grid
+            for (let row = 0; row < gameState.currentPiece.shape.length; row++) {
+                for (let col = 0; col < gameState.currentPiece.shape[row].length; col++) {
+                    if (gameState.currentPiece.shape[row][col]) {
+                        const gridRow = gameState.currentPiecePosition.row + row;
+                        const gridCol = gameState.currentPiecePosition.col + col;
+                        
+                        if (gridRow >= 0) { // Only lock if it's within the grid
+                            gameState.grid[gridRow][gridCol] = gameState.currentPiece.shape[row][col];
+                        }
+                    }
+                }
+            }
+            
+            // Check for completed hypotheses
+            checkCompletedHypotheses(gameState);
+            
+            // Generate new piece
+            generateNewPiece(gameState);
+            
+            // Clear any completed rows
+            clearCompletedRows(gameState);
+            
+            renderTetrisGrid(gameState);
+        }
+        
+        function checkCompletedHypotheses(gameState) {
+            // Check for horizontal hypotheses (rows)
+            for (let row = 0; row < gameState.grid.length; row++) {
+                const features = [];
+                for (let col = 0; col < gameState.grid[row].length; col++) {
+                    if (gameState.grid[row][col]) {
+                        features.push(gameState.grid[row][col]);
+                    }
+                }
+                
+                if (features.length >= 4) { // Need at least 4 features for a hypothesis
+                    const possibleHyp = features.slice(0, 4).join(',');
+                    if (gameState.possibleHypotheses.includes(possibleHyp) && 
+                        !gameState.completedHypotheses.includes(possibleHyp)) {
+                        gameState.completedHypotheses.push(possibleHyp);
+                        gameState.score += 100 * gameState.level;
+                        document.getElementById('tetrisScore').textContent = gameState.score;
+                        updateHypothesesDisplay(gameState);
+                        document.getElementById('tetrisMessage').innerHTML = 
+                            `<span style="color: var(--success)">Hypothesis completed: ${possibleHyp}! +${100 * gameState.level} points</span>`;
+                    }
+                }
+            }
+            
+            // Check for vertical hypotheses (columns)
+            for (let col = 0; col < gameState.grid[0].length; col++) {
+                const features = [];
+                for (let row = 0; row < gameState.grid.length; row++) {
+                    if (gameState.grid[row][col]) {
+                        features.push(gameState.grid[row][col]);
+                    }
+                }
+                
+                if (features.length >= 4) {
+                    const possibleHyp = features.slice(0, 4).join(',');
+                    if (gameState.possibleHypotheses.includes(possibleHyp) && 
+                        !gameState.completedHypotheses.includes(possibleHyp)) {
+                        gameState.completedHypotheses.push(possibleHyp);
+                        gameState.score += 100 * gameState.level;
+                        document.getElementById('tetrisScore').textContent = gameState.score;
+                        updateHypothesesDisplay(gameState);
+                        document.getElementById('tetrisMessage').innerHTML = 
+                            `<span style="color: var(--success)">Hypothesis completed: ${possibleHyp}! +${100 * gameState.level} points</span>`;
+                    }
+                }
+            }
+        }
+        
+        function updateHypothesesDisplay(gameState) {
+            const container = document.getElementById('tetrisHypotheses');
+            container.innerHTML = '';
+            
+            gameState.completedHypotheses.forEach(hyp => {
+                const badge = document.createElement('span');
+                badge.className = 'game-badge';
+                badge.textContent = hyp;
+                container.appendChild(badge);
+            });
+            
+            // Level up if all hypotheses are found
+            if (gameState.completedHypotheses.length === gameState.possibleHypotheses.length) {
+                gameState.level++;
+                document.getElementById('tetrisLevel').textContent = gameState.level;
+                gameState.completedHypotheses = [];
+                gameState.timeLeft += 30; // Bonus time
+                document.getElementById('tetrisTime').textContent = gameState.timeLeft;
+                document.getElementById('tetrisMessage').innerHTML = 
+                    `<span style="color: var(--success); font-weight: bold;">Level ${gameState.level}! +30 seconds bonus time</span>`;
+            }
+        }
+        
+        function clearCompletedRows(gameState) {
+            for (let row = gameState.grid.length - 1; row >= 0; row--) {
+                if (gameState.grid[row].every(cell => cell !== null)) {
+                    // Remove the row and add a new empty one at the top
+                    gameState.grid.splice(row, 1);
+                    gameState.grid.unshift(Array(8).fill(null));
+                    gameState.score += 10 * gameState.level;
+                    gameState.linesCleared++;
+                    document.getElementById('tetrisScore').textContent = gameState.score;
+                    document.getElementById('tetrisMessage').innerHTML = 
+                        `<span style="color: var(--success)">Row completed! +${10 * gameState.level} points</span>`;
+                }
+            }
+        }
+        
+        function renderTetrisGrid(gameState) {
+            const gridElement = document.getElementById('tetrisGrid');
+            gridElement.innerHTML = '';
+            
+            // Create a copy of the grid to render
+            const renderGrid = JSON.parse(JSON.stringify(gameState.grid));
+            
+            // Add current piece to render grid
+            if (gameState.currentPiece) {
+                for (let row = 0; row < gameState.currentPiece.shape.length; row++) {
+                    for (let col = 0; col < gameState.currentPiece.shape[row].length; col++) {
+                        if (gameState.currentPiece.shape[row][col]) {
+                            const gridRow = gameState.currentPiecePosition.row + row;
+                            const gridCol = gameState.currentPiecePosition.col + col;
+                            
+                            if (gridRow >= 0 && gridRow < renderGrid.length && 
+                                gridCol >= 0 && gridCol < renderGrid[0].length) {
+                                renderGrid[gridRow][gridCol] = gameState.currentPiece.shape[row][col];
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Render the grid
+            for (let row = 0; row < renderGrid.length; row++) {
+                for (let col = 0; col < renderGrid[row].length; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'tetris-cell';
+                    
+                    if (renderGrid[row][col]) {
+                        const block = document.createElement('div');
+                        block.className = 'tetris-block';
+                        block.textContent = renderGrid[row][col];
+                        block.style.backgroundColor = getFeatureColor(renderGrid[row][col]);
+                        cell.appendChild(block);
+                    }
+                    
+                    gridElement.appendChild(cell);
+                }
+            }
+        }
+        
+        function getFeatureColor(feature) {
+            const colors = {
+                sunny: '#FFC107',
+                rainy: '#2196F3',
+                warm: '#F44336',
+                cool: '#4CAF50',
+                high: '#9C27B0',
+                normal: '#FF9800',
+                weak: '#607D8B',
+                strong: '#795548'
+            };
+            return colors[feature] || '#FFFFFF';
+        }
+        
+        /* ===== ML DETECTIVE GAME ===== */
+        function initDetectiveGame() {
+            const detectiveGameState = {
+                caseNumber: 1,
+                cluesFound: 0,
+                accusation: null,
+                suspects: [
+                    { name: "Sunny Suspect", hypothesis: "sunny,?,?" },
+                    { name: "Rainy Suspect", hypothesis: "rainy,?,?" },
+                    { name: "Warm Suspect", hypothesis: "?,warm,?" },
+                    { name: "Cool Suspect", hypothesis: "?,cool,?" },
+                    { name: "High Suspect", hypothesis: "?,?,high" },
+                    { name: "Normal Suspect", hypothesis: "?,?,normal" }
+                ],
+                correctHypothesis: "sunny,warm,normal",
+                statements: [
+                    "The culprit enjoys sunny weather",
+                    "The culprit prefers warm temperatures",
+                    "The culprit likes normal humidity levels"
+                ],
+                caseSolved: false,
+                wrongAccusations: 0
+            };
+            
+            // Reset badges for this game
+            document.getElementById('detectiveBadge1').classList.add('badge-locked');
+            document.getElementById('detectiveBadge2').classList.add('badge-locked');
+            document.getElementById('detectiveBadge3').classList.add('badge-locked');
+            
+            // Update display
+            document.getElementById('caseNumber').textContent = detectiveGameState.caseNumber;
+            document.getElementById('detectiveClues').textContent = 
+                `${detectiveGameState.cluesFound}/3`;
+            
+            // Display statements
+            const statementsContainer = document.getElementById('witnessStatements');
+            statementsContainer.innerHTML = '';
+            
+            detectiveGameState.statements.forEach((stmt, i) => {
+                const div = document.createElement('div');
+                div.className = 'witness-statement';
+                if (i < detectiveGameState.cluesFound) {
+                    div.textContent = stmt;
+                } else {
+                    div.style.opacity = '0.5';
+                    div.textContent = '[CLUE LOCKED]';
+                }
+                statementsContainer.appendChild(div);
+            });
+            
+            // Display suspects
+            const suspectGrid = document.getElementById('suspectGrid');
+            suspectGrid.innerHTML = '';
+            
+            // Shuffle suspects based on difficulty
+            let shuffledSuspects = [...detectiveGameState.suspects];
+            if (difficultyLevel > 1) {
+                shuffledSuspects = shuffledSuspects.sort(() => Math.random() - 0.5);
+            }
+            
+            shuffledSuspects.forEach(suspect => {
+                const card = document.createElement('div');
+                card.className = 'suspect-card';
+                card.textContent = suspect.name;
+                card.dataset.hypothesis = suspect.hypothesis;
+                card.addEventListener('click', () => {
+                    if (detectiveGameState.caseSolved) return;
+                    
+                    // Toggle selection
+                    if (card.classList.contains('selected')) {
+                        card.classList.remove('selected');
+                        detectiveGameState.accusation = null;
+                        document.getElementById('detectiveAccusation').textContent = '';
+                    } else {
+                        document.querySelectorAll('.suspect-card').forEach(c => {
+                            c.classList.remove('selected');
+                        });
+                        card.classList.add('selected');
+                        detectiveGameState.accusation = suspect.hypothesis;
+                        document.getElementById('detectiveAccusation').textContent = 
+                            `Accusing: ${suspect.name} (${suspect.hypothesis})`;
+                    }
+                });
+                suspectGrid.appendChild(card);
+            });
+            
+            // Set up accusation button
+            document.getElementById('makeAccusation').addEventListener('click', () => {
+                if (detectiveGameState.caseSolved) return;
+                
+                if (!detectiveGameState.accusation) {
+                    document.getElementById('detectiveMessage').innerHTML = 
+                        `<span style="color: var(--danger)">Please select a suspect first!</span>`;
+                    return;
+                }
+                
+                // Check if accusation matches any part of the correct hypothesis
+                const accParts = detectiveGameState.accusation.split(',');
+                const corrParts = detectiveGameState.correctHypothesis.split(',');
+                let matchCount = 0;
+                
+                for (let i = 0; i < accParts.length; i++) {
+                    if (accParts[i] !== '?' && accParts[i] === corrParts[i]) {
+                        matchCount++;
+                    }
+                }
+                
+                if (matchCount === 3) { // Full match
+                    document.getElementById('detectiveMessage').innerHTML = 
+                        `<span style="color: var(--success); font-weight: bold;">
+                            Correct! You solved the case!
+                        </span>`;
+                    detectiveGameState.caseSolved = true;
+                    
+                    // Check for bronze badge
+                    if (detectiveGameState.caseNumber >= 1 && document.getElementById('detectiveBadge1').classList.contains('badge-locked')) {
+                        document.getElementById('detectiveBadge1').classList.remove('badge-locked');
+                    }
+                    
+                    // Check for gold badge (no wrong accusations)
+                    if (detectiveGameState.wrongAccusations === 0 && document.getElementById('detectiveBadge3').classList.contains('badge-locked')) {
+                        document.getElementById('detectiveBadge3').classList.remove('badge-locked');
+                    }
+                    
+                    // Show feedback
+                    showDetectiveFeedback(detectiveGameState);
+                    
+                    // Move to next case after delay
+                    setTimeout(() => {
+                        if (detectiveGameState.caseNumber < 3) {
+                            detectiveGameState.caseNumber++;
+                            initDetectiveGame();
+                        } else {
+                            // Check for silver badge (all cases solved)
+                            document.getElementById('detectiveBadge2').classList.remove('badge-locked');
+                            document.getElementById('detectiveMessage').innerHTML = 
+                                `<span style="color: var(--success); font-weight: bold;">
+                                    Congratulations! You solved all cases!
+                                </span>`;
+                        }
+                    }, 2000);
+                } else {
+                    detectiveGameState.wrongAccusations++;
+                    document.getElementById('detectiveMessage').innerHTML = 
+                        `<span style="color: var(--danger)">
+                            Wrong accusation! ${matchCount > 0 ? 
+                                `But you got ${matchCount} part(s) right. ` : ''}
+                            Try to find more clues.
+                        </span>`;
+                    
+                    // Reveal a clue if available
+                    if (detectiveGameState.cluesFound < 3) {
+                        detectiveGameState.cluesFound++;
+                        document.getElementById('detectiveClues').textContent = 
+                            `${detectiveGameState.cluesFound}/3`;
+                        initDetectiveGame(); // Refresh to show new clue
+                    }
+                }
+            });
+            
+            // Initial message
+            document.getElementById('detectiveMessage').innerHTML = `
+                <strong>Case ${detectiveGameState.caseNumber}</strong><br>
+                <small>Select suspects to learn about their partial hypotheses. Combine this information to find the full hypothesis that explains all witness statements.</small>
+            `;
+            
+            // Hide feedback initially
+            document.getElementById('detectiveFeedback').style.display = 'none';
+        }
+        
+        function showDetectiveFeedback(gameState) {
+            const feedbackBox = document.getElementById('detectiveFeedback');
+            const feedbackContent = document.getElementById('detectiveFeedbackContent');
+            
+            let feedbackHTML = `
+                <p><strong>Case Statistics:</strong></p>
+                <ul>
+                    <li>Clues found: ${gameState.cluesFound}/3</li>
+                    <li>Wrong accusations: ${gameState.wrongAccusations}</li>
+                    <li>Correct hypothesis: ${formatHypothesis(gameState.correctHypothesis)}</li>
+                </ul>
+            `;
+            
+            feedbackHTML += `
+                <p style="color: var(--success)"><strong>Case Solved!</strong></p>
+                <p>The correct hypothesis was ${formatHypothesis(gameState.correctHypothesis)} which explains all witness statements.</p>
+                <p>This demonstrates how the Find-S algorithm combines specific attributes to form a complete hypothesis that covers all positive examples.</p>
+            `;
+            
+            if (gameState.wrongAccusations > 0) {
+                feedbackHTML += `
+                    <p><strong>Improvement Tip:</strong> Try to combine information from multiple suspects to find the hypothesis that satisfies all clues.</p>
+                `;
+            }
+            
+            feedbackContent.innerHTML = feedbackHTML;
+            feedbackBox.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

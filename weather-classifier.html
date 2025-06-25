@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Weather Classifier with Specific Hypothesis</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    /* Background Animation */
+    @keyframes moveClouds {
+      0% { background-position: 0 0 }
+      100% { background-position: 10000px 0 }
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+      color: #333;
+      background: linear-gradient(to bottom, #87CEEB, #E0F7FA);
+      background-image: url('https://assets.codepen.io/13471/sky.png');
+      animation: moveClouds 240s linear infinite;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.85);
+      z-index: -1;
+    }
+
+    header {
+      background-color: rgba(74, 144, 226, 0.9);
+      color: white;
+      text-align: center;
+      padding: 2rem 1rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      position: relative;
+      z-index: 1;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2.5rem;
+      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 1.5rem;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 15px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      position: relative;
+      z-index: 1;
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .input-section, .output-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .input-section input, .input-section select {
+      padding: 0.75rem;
+      font-size: 1rem;
+      width: 100%;
+      margin: 0.5rem 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      transition: all 0.3s ease;
+      background-color: rgba(255, 255, 255, 0.8);
+    }
+
+    .input-section select:hover {
+      border-color: #4a90e2;
+      box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
+    }
+
+    .output-section {
+      text-align: center;
+    }
+
+    .hypothesis {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-top: 1rem;
+      padding: 1rem;
+      background: rgba(74, 144, 226, 0.1);
+      border-radius: 8px;
+      border-left: 4px solid #4a90e2;
+      transition: all 0.5s ease;
+    }
+
+    .hypothesis-update {
+      animation: highlight 1.5s ease;
+      background: rgba(74, 226, 144, 0.2);
+    }
+
+    @keyframes highlight {
+      0% { background: rgba(74, 226, 144, 0.2); }
+      100% { background: rgba(74, 144, 226, 0.1); }
+    }
+
+    .btn {
+      background-color: #4a90e2;
+      color: white;
+      padding: 0.8rem 1.8rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn:hover {
+      background-color: #357abd;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .feedback {
+      margin-top: 1rem;
+      font-size: 1.1rem;
+      color: #e74c3c;
+    }
+
+    .set-selection {
+      margin-top: 1rem;
+      position: relative;
+    }
+
+    /* Weather Icons */
+    .weather-icon {
+      margin-right: 8px;
+      font-size: 1.1em;
+    }
+    .sunny { color: #FFD700; }
+    .rainy { color: #4682B4; }
+    .cloudy { color: #778899; }
+    .hot { color: #FF6347; }
+    .cold { color: #ADD8E6; }
+
+    /* New additional styles */
+    .hypothesis-details {
+      background-color: rgba(248, 249, 250, 0.8);
+      padding: 1.2rem;
+      border-radius: 10px;
+      margin-top: 1.5rem;
+      text-align: left;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .attribute-match {
+      color: #27ae60;
+      font-weight: bold;
+    }
+    
+    .attribute-mismatch {
+      color: #e74c3c;
+    }
+    
+    .instructions {
+      background-color: rgba(227, 242, 253, 0.8);
+      padding: 1.2rem;
+      border-radius: 10px;
+      margin-bottom: 1.5rem;
+      font-size: 0.95rem;
+      border-left: 4px solid #4a90e2;
+    }
+    
+    .reset-btn {
+      background-color: #95a5a6;
+      margin-left: 1rem;
+    }
+    
+    .reset-btn:hover {
+      background-color: #7f8c8d;
+    }
+    
+    .selected-examples {
+      background-color: rgba(255, 248, 225, 0.8);
+      padding: 1.2rem;
+      border-radius: 10px;
+      margin-top: 1.5rem;
+      text-align: left;
+      border-left: 4px solid #FFD700;
+    }
+    
+    .example-item {
+      margin-bottom: 0.5rem;
+      padding: 0.5rem;
+      background: rgba(255, 255, 255, 0.7);
+      border-radius: 6px;
+    }
+    
+    /* Preset buttons */
+    .presets {
+      display: flex;
+      gap: 10px;
+      margin: 1rem 0;
+      flex-wrap: wrap;
+    }
+    
+    .preset-btn {
+      background: #e3f2fd;
+      border: 1px solid #bbdefb;
+      border-radius: 20px;
+      padding: 0.4rem 0.8rem;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .preset-btn:hover {
+      background: #bbdefb;
+    }
+    
+    /* Flow diagram styles */
+    .flow-diagram {
+      margin: 2rem 0;
+      padding: 1rem;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      overflow-x: auto;
+    }
+    
+    .flow-diagram h3 {
+      margin-top: 0;
+      color: #4a90e2;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 0.5rem;
+    }
+    
+    /* Find-S Algorithm Box */
+    .algorithm-box {
+      background-color: #f8f9fa;
+      border-left: 4px solid #4a90e2;
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 0 8px 8px 0;
+    }
+    
+    /* Responsive improvements */
+    @media (max-width: 768px) {
+      .container {
+        margin: 1rem;
+        padding: 1rem;
+      }
+      
+      header h1 {
+        font-size: 2rem;
+      }
+      
+      .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+      }
+      
+      .reset-btn {
+        margin-left: 0;
+      }
+      
+      .presets {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Weather Classifier with Specific Hypothesis</h1>
+    <p>Classify weather conditions and find the most specific hypothesis based on selected sets.</p>
+  </header>
+
+  <div class="container">
+    <!-- New instructions section -->
+    <div class="instructions">
+      <p><strong>How to use:</strong> Select weather examples from each set and click "Classify" to find the most specific common hypothesis. The system will show which attributes match across all selected examples.</p>
+      
+      <div class="presets">
+        <strong>Quick Presets:</strong>
+        <span class="preset-btn" onclick="loadPreset(1)">All Sunny</span>
+        <span class="preset-btn" onclick="loadPreset(2)">Mixed Weather</span>
+        <span class="preset-btn" onclick="loadPreset(3)">All Rainy</span>
+      </div>
+    </div>
+
+    <!-- Input Section -->
+    <div class="input-section">
+      <h3>Select Weather Conditions:</h3>
+
+      <!-- Set of weather conditions to choose -->
+      <div class="set-selection">
+        <label for="set1">Set 1:</label>
+        <select id="set1">
+          <option value="">-- Select --</option>
+          <option value="Sunny,Hot,High,Weak"><i class="fas fa-sun weather-icon sunny"></i> Sunny, Hot, High, Weak</option>
+          <option value="Rainy,Cold,High,Strong"><i class="fas fa-cloud-rain weather-icon rainy"></i> Rainy, Cold, High, Strong</option>
+          <option value="Sunny,Hot,Low,Weak"><i class="fas fa-sun weather-icon sunny"></i> Sunny, Hot, Low, Weak</option>
+          <option value="Cloudy,Cold,High,Weak"><i class="fas fa-cloud weather-icon cloudy"></i> Cloudy, Cold, High, Weak</option>
+          <option value="Rainy,Cold,Low,Strong"><i class="fas fa-cloud-rain weather-icon rainy"></i> Rainy, Cold, Low, Strong</option>
+        </select>
+      </div>
+
+      <div class="set-selection">
+        <label for="set2">Set 2:</label>
+        <select id="set2">
+          <option value="">-- Select --</option>
+          <option value="Sunny,Hot,High,Weak"><i class="fas fa-sun weather-icon sunny"></i> Sunny, Hot, High, Weak</option>
+          <option value="Rainy,Cold,High,Strong"><i class="fas fa-cloud-rain weather-icon rainy"></i> Rainy, Cold, High, Strong</option>
+          <option value="Sunny,Hot,Low,Weak"><i class="fas fa-sun weather-icon sunny"></i> Sunny, Hot, Low, Weak</option>
+          <option value="Cloudy,Cold,High,Weak"><i class="fas fa-cloud weather-icon cloudy"></i> Cloudy, Cold, High, Weak</option>
+          <option value="Rainy,Cold,Low,Strong"><i class="fas fa-cloud-rain weather-icon rainy"></i> Rainy, Cold, Low, Strong</option>
+        </select>
+      </div>
+
+      <div class="set-selection">
+        <label for="set3">Set 3:</label>
+        <select id="set3">
+          <option value="">-- Select --</option>
+          <option value="Sunny,Hot,High,Weak"><i class="fas fa-sun weather-icon sunny"></i> Sunny, Hot, High, Weak</option>
+          <option value="Rainy,Cold,High,Strong"><i class="fas fa-cloud-rain weather-icon rainy"></i> Rainy, Cold, High, Strong</option>
+          <option value="Sunny,Hot,Low,Weak"><i class="fas fa-sun weather-icon sunny"></i> Sunny, Hot, Low, Weak</option>
+          <option value="Cloudy,Cold,High,Weak"><i class="fas fa-cloud weather-icon cloudy"></i> Cloudy, Cold, High, Weak</option>
+          <option value="Rainy,Cold,Low,Strong"><i class="fas fa-cloud-rain weather-icon rainy"></i> Rainy, Cold, Low, Strong</option>
+        </select>
+      </div>
+
+      <div>
+        <button class="btn" onclick="updateHypothesis()"><i class="fas fa-search"></i> Classify</button>
+        <button class="btn reset-btn" onclick="resetSelections()"><i class="fas fa-redo"></i> Reset</button>
+      </div>
+    </div>
+
+    <!-- Output Section -->
+    <div class="output-section">
+      <h3>Most Specific Hypothesis:</h3>
+      <p id="hypothesis" class="hypothesis">No hypothesis yet.</p>
+      
+      <!-- Selected examples display -->
+      <div id="selectedExamples" class="selected-examples" style="display: none;">
+        <h4><i class="fas fa-list-ul"></i> Selected Examples:</h4>
+        <div id="examplesList"></div>
+      </div>
+      
+      <!-- Detailed hypothesis display -->
+      <div id="hypothesisDetails" class="hypothesis-details" style="display: none;">
+        <h4><i class="fas fa-chart-bar"></i> Detailed Analysis:</h4>
+        <p id="weatherDetail"></p>
+        <p id="tempDetail"></p>
+        <p id="humidityDetail"></p>
+        <p id="windDetail"></p>
+      </div>
+
+      <!-- Find-S Algorithm Explanation -->
+      <div id="algorithmExplanation" class="algorithm-box" style="display: none;">
+        <h4><i class="fas fa-brain"></i> Find-S Algorithm Steps:</h4>
+        <ol id="algorithmSteps"></ol>
+      </div>
+
+      <!-- Flow diagram section -->
+      <div id="flowDiagram" class="flow-diagram" style="display: none;">
+        <h3><i class="fas fa-project-diagram"></i> Algorithm Flow</h3>
+        <div class="mermaid" id="diagramContent"></div>
+      </div>
+
+      <p class="feedback" id="feedback"></p>
+    </div>
+  </div>
+
+  <script>
+    // Initialize Mermaid for flow diagrams
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'default',
+      flowchart: {
+        useMaxWidth: true,
+        htmlLabels: true,
+        curve: 'basis',
+        rankDir: 'TB' // Top to Bottom (vertical) flow
+      }
+    });
+
+    let previousHypothesis = null;
+
+    function updateHypothesis() {
+      // Get selected sets
+      const sets = [
+        document.getElementById("set1").value,
+        document.getElementById("set2").value,
+        document.getElementById("set3").value,
+      ].filter(set => set); // Only consider non-empty selections
+
+      // Initialize the most specific hypothesis with `?` for all attributes
+      let hypothesis = {
+        weather: '?',
+        temperature: '?',
+        humidity: '?',
+        wind: '?',
+      };
+
+      if (sets.length === 0) {
+        document.getElementById("hypothesis").innerText = "No hypothesis yet.";
+        document.getElementById("feedback").innerText = "Please select at least one set.";
+        document.getElementById("hypothesisDetails").style.display = "none";
+        document.getElementById("selectedExamples").style.display = "none";
+        document.getElementById("flowDiagram").style.display = "none";
+        document.getElementById("algorithmExplanation").style.display = "none";
+        return;
+      }
+
+      // Show selected examples
+      showSelectedExamples(sets);
+
+      // Initialize algorithm steps
+      const algorithmSteps = [];
+      algorithmSteps.push("1. Initialize the most specific hypothesis: h = ⟨?, ?, ?, ?⟩");
+
+      // Find the most specific hypothesis
+      const firstSet = sets[0].split(',');
+      hypothesis.weather = firstSet[0];
+      hypothesis.temperature = firstSet[1];
+      hypothesis.humidity = firstSet[2];
+      hypothesis.wind = firstSet[3];
+      
+      algorithmSteps.push(`2. For first example ${sets[0]}, set h = ⟨${hypothesis.weather}, ${hypothesis.temperature}, ${hypothesis.humidity}, ${hypothesis.wind}⟩`);
+
+      // Compare with other sets
+      for (let i = 1; i < sets.length; i++) {
+        const currentSet = sets[i].split(',');
+        const prevHypothesis = JSON.parse(JSON.stringify(hypothesis));
+        
+        if (hypothesis.weather !== currentSet[0]) hypothesis.weather = '?';
+        if (hypothesis.temperature !== currentSet[1]) hypothesis.temperature = '?';
+        if (hypothesis.humidity !== currentSet[2]) hypothesis.humidity = '?';
+        if (hypothesis.wind !== currentSet[3]) hypothesis.wind = '?';
+        
+        algorithmSteps.push(`3. Compare with example ${i+1}: ${sets[i]}`);
+        algorithmSteps.push(`   - Previous h: ⟨${prevHypothesis.weather}, ${prevHypothesis.temperature}, ${prevHypothesis.humidity}, ${prevHypothesis.wind}⟩`);
+        algorithmSteps.push(`   - New h: ⟨${hypothesis.weather}, ${hypothesis.temperature}, ${hypothesis.humidity}, ${hypothesis.wind}⟩`);
+      }
+
+      algorithmSteps.push(`4. Final hypothesis: ⟨${hypothesis.weather}, ${hypothesis.temperature}, ${hypothesis.humidity}, ${hypothesis.wind}⟩`);
+
+      // Display the most specific hypothesis (without symbols)
+      const hypothesisElement = document.getElementById("hypothesis");
+      hypothesisElement.innerHTML = 
+        `⟨${hypothesis.weather}, ${hypothesis.temperature}, ${hypothesis.humidity}, ${hypothesis.wind}⟩`;
+
+      // Highlight if hypothesis changed
+      if (previousHypothesis && JSON.stringify(previousHypothesis) !== JSON.stringify(hypothesis)) {
+        hypothesisElement.classList.add("hypothesis-update");
+        setTimeout(() => {
+          hypothesisElement.classList.remove("hypothesis-update");
+        }, 1500);
+      }
+      previousHypothesis = {...hypothesis};
+
+      // Provide feedback
+      document.getElementById("feedback").innerText = `Analyzed ${sets.length} example(s)`;
+      
+      // Enhanced output display
+      showDetailedHypothesis(hypothesis, sets);
+      
+      // Show algorithm steps
+      showAlgorithmSteps(algorithmSteps);
+      
+      // Show flow diagram
+      showFlowDiagram(sets, hypothesis);
+    }
+    
+    function showAlgorithmSteps(steps) {
+      const algorithmDiv = document.getElementById("algorithmExplanation");
+      const stepsList = document.getElementById("algorithmSteps");
+      
+      algorithmDiv.style.display = "block";
+      stepsList.innerHTML = "";
+      
+      steps.forEach(step => {
+        const li = document.createElement("li");
+        li.innerHTML = step;
+        stepsList.appendChild(li);
+      });
+    }
+    
+    function showFlowDiagram(sets, hypothesis) {
+      const flowDiv = document.getElementById("flowDiagram");
+      const diagramContent = document.getElementById("diagramContent");
+      
+      flowDiv.style.display = "block";
+      
+      // Generate Mermaid diagram code
+      let diagramCode = `flowchart TD
+        A["Start"] --> B["Initialize Hypothesis:<br>h = ⟨?, ?, ?, ?⟩"]`;
+      
+      if (sets.length > 0) {
+        diagramCode += `
+        B --> C["Process Example 1:<br>${sets[0]}"]`;
+        diagramCode += `
+        C --> D["h = ⟨${sets[0].split(',').join(', ')}⟩"]`;
+      }
+      
+      for (let i = 1; i < sets.length; i++) {
+        diagramCode += `
+        D --> E["Process Example ${i+1}:<br>${sets[i]}"]`;
+        diagramCode += `
+        E --> F{"Attributes match?"}`;
+        diagramCode += `
+        F -->|Yes| G["Keep current h"]`;
+        diagramCode += `
+        F -->|No| H["Generalize h"]`;
+        
+        if (i < sets.length - 1) {
+          diagramCode += `
+          G --> E
+          H --> E`;
+        } else {
+          diagramCode += `
+          G --> I["Final h = ⟨${hypothesis.weather}, ${hypothesis.temperature}, ${hypothesis.humidity}, ${hypothesis.wind}⟩"]
+          H --> I`;
+        }
+      }
+      
+      if (sets.length === 1) {
+        diagramCode += `
+        D --> I["Final h = ⟨${hypothesis.weather}, ${hypothesis.temperature}, ${hypothesis.humidity}, ${hypothesis.wind}⟩"]`;
+      }
+      
+      diagramCode += `
+        I --> J["Display Results"]`;
+      
+      diagramContent.innerHTML = diagramCode;
+      
+      // Render the diagram
+      mermaid.init(undefined, diagramContent);
+    }
+
+    function getWeatherIcon(weather) {
+      if (weather === 'Sunny') return '<i class="fas fa-sun weather-icon sunny"></i>';
+      if (weather === 'Rainy') return '<i class="fas fa-cloud-rain weather-icon rainy"></i>';
+      if (weather === 'Cloudy') return '<i class="fas fa-cloud weather-icon cloudy"></i>';
+      return '<i class="fas fa-question weather-icon"></i>';
+    }
+    
+    function getTempIcon(temp) {
+      if (temp === 'Hot') return '<i class="fas fa-temperature-high weather-icon hot"></i>';
+      if (temp === 'Cold') return '<i class="fas fa-temperature-low weather-icon cold"></i>';
+      return '<i class="fas fa-question weather-icon"></i>';
+    }
+    
+    function showSelectedExamples(sets) {
+      const examplesDiv = document.getElementById("selectedExamples");
+      const examplesList = document.getElementById("examplesList");
+      
+      examplesDiv.style.display = "block";
+      examplesList.innerHTML = "";
+      
+      sets.forEach((set, index) => {
+        const [weather, temp, humidity, wind] = set.split(',');
+        const weatherIcon = getWeatherIcon(weather);
+        const tempIcon = getTempIcon(temp);
+        
+        const exampleDiv = document.createElement("div");
+        exampleDiv.className = "example-item";
+        exampleDiv.innerHTML = `
+          <strong>Example ${index+1}:</strong> 
+          ${weatherIcon} ${weather}, 
+          ${tempIcon} ${temp}, 
+          <i class="fas fa-tint"></i> ${humidity}, 
+          <i class="fas fa-wind"></i> ${wind}
+        `;
+        examplesList.appendChild(exampleDiv);
+      });
+    }
+    
+    function showDetailedHypothesis(hypothesis, sets) {
+      const detailsDiv = document.getElementById("hypothesisDetails");
+      detailsDiv.style.display = "block";
+      
+      // Get all values for each attribute from selected sets
+      const weatherValues = sets.map(set => set.split(',')[0]);
+      const tempValues = sets.map(set => set.split(',')[1]);
+      const humidityValues = sets.map(set => set.split(',')[2]);
+      const windValues = sets.map(set => set.split(',')[3]);
+      
+      // Display each attribute with correct matching information
+      document.getElementById("weatherDetail").innerHTML = 
+        getAttributeDetail("Weather", hypothesis.weather, weatherValues);
+      document.getElementById("tempDetail").innerHTML = 
+        getAttributeDetail("Temperature", hypothesis.temperature, tempValues);
+      document.getElementById("humidityDetail").innerHTML = 
+        getAttributeDetail("Humidity", hypothesis.humidity, humidityValues);
+      document.getElementById("windDetail").innerHTML = 
+        getAttributeDetail("Wind", hypothesis.wind, windValues);
+    }
+    
+    function getAttributeDetail(name, value, values) {
+      const uniqueValues = [...new Set(values)]; // Get unique values
+      
+      if (value === '?') {
+        return `<span class="attribute-mismatch">${name}: No common value (found: ${uniqueValues.join(", ")})</span>`;
+      } else {
+        return `<span class="attribute-match">${name}: ${value} (matches across all examples)</span>`;
+      }
+    }
+    
+    function resetSelections() {
+      document.getElementById("set1").selectedIndex = 0;
+      document.getElementById("set2").selectedIndex = 0;
+      document.getElementById("set3").selectedIndex = 0;
+      document.getElementById("hypothesis").innerText = "No hypothesis yet.";
+      document.getElementById("feedback").innerText = "";
+      document.getElementById("hypothesisDetails").style.display = "none";
+      document.getElementById("selectedExamples").style.display = "none";
+      document.getElementById("flowDiagram").style.display = "none";
+      document.getElementById("algorithmExplanation").style.display = "none";
+      previousHypothesis = null;
+    }
+    
+    // Preset loading functions
+    function loadPreset(presetNum) {
+      resetSelections();
+      
+      switch(presetNum) {
+        case 1: // All Sunny
+          document.getElementById("set1").value = "Sunny,Hot,High,Weak";
+          document.getElementById("set2").value = "Sunny,Hot,Low,Weak";
+          document.getElementById("set3").value = "Sunny,Hot,High,Weak";
+          break;
+        case 2: // Mixed Weather
+          document.getElementById("set1").value = "Sunny,Hot,High,Weak";
+          document.getElementById("set2").value = "Rainy,Cold,High,Strong";
+          document.getElementById("set3").value = "Cloudy,Cold,High,Weak";
+          break;
+        case 3: // All Rainy
+          document.getElementById("set1").value = "Rainy,Cold,High,Strong";
+          document.getElementById("set2").value = "Rainy,Cold,Low,Strong";
+          document.getElementById("set3").value = "Rainy,Cold,High,Strong";
+          break;
+      }
+      
+      updateHypothesis();
+    }
+  </script>
+</body>
+</html>

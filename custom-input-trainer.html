@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Custom Input Trainer - Find-S Algorithm</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-color: #4a90e2;
+      --secondary-color: #6c757d;
+      --success-color: #28a745;
+      --danger-color: #dc3545;
+      --light-color: #f8f9fa;
+      --dark-color: #343a40;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 2rem auto;
+      padding: 1.5rem;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    h1, h2, h3 {
+      color: var(--primary-color);
+    }
+
+    .btn {
+      padding: 0.6rem 1.2rem;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: #357abd;
+      transform: translateY(-2px);
+    }
+
+    .btn-danger {
+      background-color: var(--danger-color);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background-color: #c82333;
+    }
+
+    .btn-success {
+      background-color: var(--success-color);
+      color: white;
+    }
+
+    .btn-success:hover {
+      background-color: #218838;
+    }
+
+    /* Input Section */
+    .input-section {
+      background-color: #f8f9fa;
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      border-left: 4px solid var(--primary-color);
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+
+    input[type="text"],
+    select {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+
+    /* Features Table */
+    .features-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1.5rem;
+    }
+
+    .features-table th,
+    .features-table td {
+      padding: 0.75rem;
+      border: 1px solid #dee2e6;
+      text-align: left;
+    }
+
+    .features-table th {
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    .features-table tr:nth-child(even) {
+      background-color: #f8f9fa;
+    }
+
+    /* Hypothesis Display */
+    .hypothesis-section {
+      background-color: #e8f4fd;
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+    }
+
+    .hypothesis-display {
+      font-family: monospace;
+      background-color: white;
+      padding: 1rem;
+      border-radius: 5px;
+      border-left: 4px solid var(--primary-color);
+    }
+
+    /* Step-by-Step Visualization */
+    .steps-container {
+      margin-top: 1.5rem;
+    }
+
+    .step {
+      background-color: white;
+      border-left: 4px solid var(--secondary-color);
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-radius: 4px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .step-header {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--primary-color);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .container {
+        padding: 1rem;
+      }
+      
+      .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+      }
+    }
+
+    /* Icons */
+    .icon {
+      margin-right: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1><i class="fas fa-edit icon"></i>Custom Input Trainer</h1>
+    <p>Enter your own feature examples and labels to see how the hypothesis evolves using the Find-S algorithm.</p>
+
+    <div class="input-section">
+      <h2><i class="fas fa-cog icon"></i>Configure Your Dataset</h2>
+      
+      <div class="form-group">
+        <label for="feature-names">Feature Names (comma separated):</label>
+        <input type="text" id="feature-names" placeholder="e.g., Weather,Temperature,Humidity,Wind">
+      </div>
+      
+      <div class="form-group">
+        <label for="target-label">Target Label Name:</label>
+        <input type="text" id="target-label" placeholder="e.g., PlayTennis">
+      </div>
+      
+      <button class="btn btn-primary" onclick="initializeFeatures()">
+        <i class="fas fa-check icon"></i>Initialize Features
+      </button>
+    </div>
+
+    <div id="features-container" style="display: none;">
+      <h2><i class="fas fa-table icon"></i>Add Training Examples</h2>
+      
+      <table class="features-table">
+        <thead>
+          <tr id="features-header"></tr>
+        </thead>
+        <tbody id="features-body"></tbody>
+      </table>
+      
+      <div class="form-group">
+        <button class="btn btn-primary" onclick="addExample()">
+          <i class="fas fa-plus icon"></i>Add Example
+        </button>
+        <button class="btn btn-success" onclick="runFindS()">
+          <i class="fas fa-play icon"></i>Run Find-S Algorithm
+        </button>
+        <button class="btn btn-danger" onclick="resetAll()">
+          <i class="fas fa-trash icon"></i>Reset All
+        </button>
+      </div>
+    </div>
+
+    <div id="hypothesis-container" style="display: none;">
+      <div class="hypothesis-section">
+        <h2><i class="fas fa-lightbulb icon"></i>Current Hypothesis</h2>
+        <div class="hypothesis-display" id="hypothesis-display">
+          The most specific hypothesis will appear here.
+        </div>
+      </div>
+
+      <div class="steps-container">
+        <h2><i class="fas fa-list-ol icon"></i>Algorithm Steps</h2>
+        <div id="steps-display">
+          <!-- Steps will be added here dynamically -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let featureNames = [];
+    let targetLabel = "";
+    let trainingExamples = [];
+    let currentHypothesis = [];
+    let steps = [];
+
+    function initializeFeatures() {
+      const featuresInput = document.getElementById("feature-names").value.trim();
+      targetLabel = document.getElementById("target-label").value.trim();
+      
+      if (!featuresInput || !targetLabel) {
+        alert("Please enter both feature names and target label");
+        return;
+      }
+      
+      featureNames = featuresInput.split(",").map(f => f.trim());
+      currentHypothesis = Array(featureNames.length).fill("∅");
+      
+      // Initialize the features table header
+      const headerRow = document.getElementById("features-header");
+      headerRow.innerHTML = "";
+      
+      featureNames.forEach(name => {
+        const th = document.createElement("th");
+        th.textContent = name;
+        headerRow.appendChild(th);
+      });
+      
+      const thLabel = document.createElement("th");
+      thLabel.textContent = targetLabel + " (Label)";
+      headerRow.appendChild(thLabel);
+      
+      const thActions = document.createElement("th");
+      thActions.textContent = "Actions";
+      headerRow.appendChild(thActions);
+      
+      // Show the features container
+      document.getElementById("features-container").style.display = "block";
+      
+      // Update hypothesis display
+      updateHypothesisDisplay();
+    }
+
+    function addExample() {
+      const featuresBody = document.getElementById("features-body");
+      const row = document.createElement("tr");
+      
+      featureNames.forEach((_, index) => {
+        const td = document.createElement("td");
+        const input = document.createElement("input");
+        input.type = "text";
+        input.placeholder = `Value for ${featureNames[index]}`;
+        input.className = "feature-value";
+        td.appendChild(input);
+        row.appendChild(td);
+      });
+      
+      // Add label cell
+      const tdLabel = document.createElement("td");
+      const select = document.createElement("select");
+      const optionPositive = document.createElement("option");
+      optionPositive.value = "Yes";
+      optionPositive.textContent = "Yes (Positive)";
+      const optionNegative = document.createElement("option");
+      optionNegative.value = "No";
+      optionNegative.textContent = "No (Negative)";
+      select.appendChild(optionPositive);
+      select.appendChild(optionNegative);
+      tdLabel.appendChild(select);
+      row.appendChild(tdLabel);
+      
+      // Add actions cell
+      const tdActions = document.createElement("td");
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "btn btn-danger";
+      deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+      deleteBtn.onclick = function() {
+        featuresBody.removeChild(row);
+      };
+      tdActions.appendChild(deleteBtn);
+      row.appendChild(tdActions);
+      
+      featuresBody.appendChild(row);
+    }
+
+    function runFindS() {
+      // Collect all training examples
+      trainingExamples = [];
+      steps = [];
+      const rows = document.getElementById("features-body").rows;
+      
+      for (let i = 0; i < rows.length; i++) {
+        const cells = rows[i].cells;
+        const example = {
+          features: [],
+          label: cells[featureNames.length].firstChild.value
+        };
+        
+        for (let j = 0; j < featureNames.length; j++) {
+          example.features.push(cells[j].firstChild.value);
+        }
+        
+        trainingExamples.push(example);
+      }
+      
+      // Filter only positive examples (Find-S only uses positive examples)
+      const positiveExamples = trainingExamples.filter(ex => ex.label === "Yes");
+      
+      if (positiveExamples.length === 0) {
+        alert("No positive examples found! Find-S requires at least one positive example.");
+        return;
+      }
+      
+      // Initialize hypothesis with first positive example
+      currentHypothesis = [...positiveExamples[0].features];
+      steps.push({
+        description: `Initialize hypothesis with first positive example: ${positiveExamples[0].features.join(", ")}`,
+        hypothesis: [...currentHypothesis]
+      });
+      
+      // Process remaining positive examples
+      for (let i = 1; i < positiveExamples.length; i++) {
+        const example = positiveExamples[i];
+        const prevHypothesis = [...currentHypothesis];
+        
+        for (let j = 0; j < featureNames.length; j++) {
+          if (currentHypothesis[j] !== example.features[j]) {
+            currentHypothesis[j] = "?";
+          }
+        }
+        
+        steps.push({
+          description: `Process example ${i+1}: ${example.features.join(", ")}`,
+          previous: [...prevHypothesis],
+          hypothesis: [...currentHypothesis]
+        });
+      }
+      
+      // Update displays
+      updateHypothesisDisplay();
+      updateStepsDisplay();
+      
+      // Show hypothesis container
+      document.getElementById("hypothesis-container").style.display = "block";
+    }
+
+    function updateHypothesisDisplay() {
+      const display = document.getElementById("hypothesis-display");
+      
+      if (currentHypothesis.every(val => val === "∅")) {
+        display.innerHTML = "<strong>Initial Hypothesis:</strong> The most specific hypothesis (all features ∅)";
+        return;
+      }
+      
+      let html = "<strong>Current Hypothesis:</strong> &lt;";
+      html += currentHypothesis.map(val => val === "∅" ? "<span style='color:#dc3545'>∅</span>" : val).join(", ");
+      html += "&gt;";
+      
+      display.innerHTML = html;
+    }
+
+    function updateStepsDisplay() {
+      const container = document.getElementById("steps-display");
+      container.innerHTML = "";
+      
+      steps.forEach((step, index) => {
+        const stepDiv = document.createElement("div");
+        stepDiv.className = "step";
+        
+        const header = document.createElement("div");
+        header.className = "step-header";
+        header.textContent = `Step ${index + 1}: ${step.description}`;
+        stepDiv.appendChild(header);
+        
+        if (step.previous) {
+          const prevDiv = document.createElement("div");
+          prevDiv.innerHTML = `<strong>Previous Hypothesis:</strong> &lt;${step.previous.join(", ")}&gt;`;
+          stepDiv.appendChild(prevDiv);
+        }
+        
+        const currentDiv = document.createElement("div");
+        currentDiv.innerHTML = `<strong>New Hypothesis:</strong> &lt;${step.hypothesis.join(", ")}&gt;`;
+        stepDiv.appendChild(currentDiv);
+        
+        container.appendChild(stepDiv);
+      });
+    }
+
+    function resetAll() {
+      featureNames = [];
+      targetLabel = "";
+      trainingExamples = [];
+      currentHypothesis = [];
+      steps = [];
+      
+      document.getElementById("feature-names").value = "";
+      document.getElementById("target-label").value = "";
+      document.getElementById("features-header").innerHTML = "";
+      document.getElementById("features-body").innerHTML = "";
+      document.getElementById("hypothesis-display").innerHTML = "The most specific hypothesis will appear here.";
+      document.getElementById("steps-display").innerHTML = "";
+      
+      document.getElementById("features-container").style.display = "none";
+      document.getElementById("hypothesis-container").style.display = "none";
+    }
+  </script>
+</body>
+</html>

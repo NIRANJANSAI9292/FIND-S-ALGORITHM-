@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Algorithm Arena</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #121212;
+            color: white;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        .bg-particle {
+            position: absolute;
+            background: rgba(255, 193, 7, 0.2);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+            background: rgba(30, 30, 30, 0.8);
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            margin-top: 30px;
+        }
+        
+        h1 {
+            color: #ffc107;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
+            margin-bottom: 10px;
+        }
+        
+        p.subtitle {
+            text-align: center;
+            color: #aaa;
+            margin-bottom: 30px;
+        }
+        
+        .framework {
+            background: rgba(51, 51, 51, 0.8);
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #2196F3;
+        }
+        
+        select {
+            padding: 12px;
+            font-size: 16px;
+            width: 100%;
+            margin: 20px 0;
+            background: #333;
+            color: white;
+            border: 1px solid #555;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        .results {
+            background: rgba(51, 51, 51, 0.8);
+            padding: 20px;
+            border-radius: 5px;
+            margin-top: 20px;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .chart-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin: 20px 0;
+        }
+        
+        .chart {
+            width: 48%;
+            margin-bottom: 20px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 5px;
+            padding: 15px;
+        }
+        
+        .radar-chart {
+            width: 100%;
+            height: 400px;
+            margin: 20px 0;
+        }
+        
+        .bar-graph {
+            display: flex;
+            height: 200px;
+            align-items: flex-end;
+            margin-top: 20px;
+        }
+        
+        .bar {
+            flex: 1;
+            margin: 0 5px;
+            position: relative;
+            transition: height 1s ease;
+        }
+        
+        .bar-find-s {
+            background: #2196F3;
+        }
+        
+        .bar-algo {
+            background: #ffc107;
+        }
+        
+        .bar-label {
+            position: absolute;
+            bottom: -25px;
+            width: 100%;
+            text-align: center;
+            font-size: 12px;
+        }
+        
+        .bar-value {
+            position: absolute;
+            top: -20px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .winner {
+            color: #4caf50;
+            font-weight: bold;
+        }
+        
+        .loser {
+            color: #f44336;
+        }
+        
+        .comparison-summary {
+            margin-top: 30px;
+            padding: 15px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 5px;
+        }
+        
+        .metric {
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 3px;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            background: #333;
+            cursor: pointer;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+        }
+        
+        .tab.active {
+            background: #ffc107;
+            color: #121212;
+            font-weight: bold;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .float {
+            animation: floating 3s ease-in-out infinite;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container float">
+        <h1>Algorithm Arena</h1>
+        <p class="subtitle">Visual Comparison of Machine Learning Algorithms</p>
+        
+        <div class="framework">
+            <div class="tabs">
+                <div class="tab active" data-tab="metrics">Metrics</div>
+                <div class="tab" data-tab="algorithms">Algorithms</div>
+            </div>
+            
+            <div class="tab-content active" id="metrics">
+                <p><strong>1. Training Speed:</strong> Time to learn from training data (higher = faster)</p>
+                <p><strong>2. Accuracy:</strong> Performance on test data (higher = better)</p>
+                <p><strong>3. Noise Handling:</strong> Tolerance to noisy/missing data (higher = better)</p>
+                <p><strong>4. Interpretability:</strong> How understandable the learned model is (higher = better)</p>
+                <p><strong>5. Data Type Support:</strong> Nominal vs. numeric attributes</p>
+                <p><em>All comparisons use the Weather dataset with nominal attributes</em></p>
+            </div>
+            
+            <div class="tab-content" id="algorithms">
+                <p><strong>Find-S:</strong> Simple concept learning algorithm</p>
+                <p><strong>Candidate Elimination:</strong> Maintains version space of all consistent hypotheses</p>
+                <p><strong>ID3 Decision Tree:</strong> Top-down induction of decision trees</p>
+                <p><strong>Naive Bayes:</strong> Probabilistic classifier with independence assumptions</p>
+                <p><strong>Bayesian Belief Network:</strong> Probabilistic graphical model</p>
+                <p><strong>SVM:</strong> Finds optimal separating hyperplane</p>
+                <p><strong>k-NN:</strong> Instance-based learning</p>
+                <p><strong>Weighted k-NN:</strong> k-NN with weighted voting</p>
+                <p><strong>EM:</strong> Expectation-Maximization for incomplete data</p>
+                <p><strong>SLP/MLP:</strong> Single/Multi-layer perceptron neural networks</p>
+            </div>
+        </div>
+        
+        <select id="algorithm-select">
+            <option value="">Select an algorithm to compare with Find-S</option>
+            <option value="ce">Candidate Elimination</option>
+            <option value="id3">ID3 Decision Tree</option>
+            <option value="nb">Naive Bayes</option>
+            <option value="bn">Bayesian Belief Network</option>
+            <option value="svm">Support Vector Machine (SVM)</option>
+            <option value="knn">k-Nearest Neighbors</option>
+            <option value="wknn">Weighted k-NN</option>
+            <option value="em">Expectation Maximization</option>
+            <option value="slp">Single Layer Perceptron</option>
+            <option value="mlp">Multi-Layer Perceptron</option>
+        </select>
+        
+        <div id="results" class="results" style="display: none;">
+            <h2>Comparison: Find-S vs. <span id="algo-name">-</span></h2>
+            
+            <div class="chart-container">
+                <div class="chart">
+                    <h3>Training Speed</h3>
+                    <div class="bar-graph" id="speed-graph"></div>
+                </div>
+                
+                <div class="chart">
+                    <h3>Accuracy</h3>
+                    <div class="bar-graph" id="accuracy-graph"></div>
+                </div>
+                
+                <div class="chart">
+                    <h3>Noise Handling</h3>
+                    <div class="bar-graph" id="noise-graph"></div>
+                </div>
+                
+                <div class="chart">
+                    <h3>Interpretability</h3>
+                    <div class="bar-graph" id="interpretability-graph"></div>
+                </div>
+            </div>
+            
+            <div class="radar-chart-container">
+                <h3>Radar Chart Comparison</h3>
+                <canvas id="radar-chart" class="radar-chart"></canvas>
+            </div>
+            
+            <div class="comparison-summary">
+                <h3>Comparison Summary</h3>
+                <div class="metric">
+                    <strong>Training Speed:</strong>
+                    <span id="speed-text"></span>
+                    <span id="speed-winner" class="winner"></span>
+                </div>
+                <div class="metric">
+                    <strong>Accuracy:</strong>
+                    <span id="accuracy-text"></span>
+                    <span id="accuracy-winner" class="winner"></span>
+                </div>
+                <div class="metric">
+                    <strong>Noise Handling:</strong>
+                    <span id="noise-text"></span>
+                    <span id="noise-winner" class="winner"></span>
+                </div>
+                <div class="metric">
+                    <strong>Interpretability:</strong>
+                    <span id="interpretability-text"></span>
+                    <span id="interpretability-winner" class="winner"></span>
+                </div>
+                <div class="metric" style="background: rgba(255,193,7,0.1);">
+                    <strong style="font-size: 1.1em;">Overall Winner:</strong>
+                    <span id="overall-winner" class="winner" style="font-size: 1.1em;"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Create background particles
+        function createParticles() {
+            const particleCount = 20;
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('bg-particle');
+                
+                const size = Math.random() * 10 + 5;
+                const posX = Math.random() * window.innerWidth;
+                const posY = Math.random() * window.innerHeight;
+                const opacity = Math.random() * 0.3 + 0.1;
+                const duration = Math.random() * 20 + 10;
+                
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${posX}px`;
+                particle.style.top = `${posY}px`;
+                particle.style.opacity = opacity;
+                particle.style.animation = `floating ${duration}s infinite`;
+                
+                document.body.appendChild(particle);
+            }
+        }
+        
+        // Algorithm data
+        const algorithms = {
+            "ce": {
+                name: "Candidate Elimination",
+                speed: { findS: 95, algo: 30 },
+                accuracy: { findS: 87, algo: 92 },
+                noise: { findS: 30, algo: 75 },
+                interpretability: { findS: 90, algo: 85 },
+                speedText: "Find-S is much faster (95 vs 30) as it finds one hypothesis",
+                accuracyText: "Candidate Elimination is more accurate (92% vs 87%)",
+                noiseText: "Candidate Elimination handles noise better (75 vs 30)",
+                interpretabilityText: "Both are interpretable (90 vs 85)",
+                winner: "Candidate Elimination",
+                winnerDetails: "Candidate Elimination wins on accuracy and noise handling"
+            },
+            "id3": {
+                name: "ID3 Decision Tree",
+                speed: { findS: 95, algo: 70 },
+                accuracy: { findS: 87, algo: 89 },
+                noise: { findS: 30, algo: 60 },
+                interpretability: { findS: 90, algo: 85 },
+                speedText: "Find-S is faster (95 vs 70) as ID3 calculates information gain",
+                accuracyText: "ID3 is slightly more accurate (89% vs 87%)",
+                noiseText: "ID3 handles noise better (60 vs 30)",
+                interpretabilityText: "Both are interpretable (90 vs 85)",
+                winner: "ID3 Decision Tree",
+                winnerDetails: "ID3 wins on accuracy and noise handling"
+            },
+            "nb": {
+                name: "Naive Bayes",
+                speed: { findS: 95, algo: 85 },
+                accuracy: { findS: 87, algo: 85 },
+                noise: { findS: 30, algo: 90 },
+                interpretability: { findS: 90, algo: 70 },
+                speedText: "Both are fast (95 vs 85)",
+                accuracyText: "Find-S is slightly more accurate (87% vs 85%)",
+                noiseText: "Naive Bayes handles noise much better (90 vs 30)",
+                interpretabilityText: "Find-S is more interpretable (90 vs 70)",
+                winner: "Find-S",
+                winnerDetails: "Find-S wins on accuracy and interpretability"
+            },
+            "bn": {
+                name: "Bayesian Belief Network",
+                speed: { findS: 95, algo: 50 },
+                accuracy: { findS: 87, algo: 88 },
+                noise: { findS: 30, algo: 85 },
+                interpretability: { findS: 90, algo: 60 },
+                speedText: "Find-S is much faster (95 vs 50)",
+                accuracyText: "BBN is slightly more accurate (88% vs 87%)",
+                noiseText: "BBN handles noise much better (85 vs 30)",
+                interpretabilityText: "Find-S is more interpretable (90 vs 60)",
+                winner: "Bayesian Belief Network",
+                winnerDetails: "BBN wins on accuracy and noise handling"
+            },
+            "svm": {
+                name: "Support Vector Machine",
+                speed: { findS: 95, algo: 60 },
+                accuracy: { findS: 87, algo: 90 },
+                noise: { findS: 30, algo: 80 },
+                interpretability: { findS: 90, algo: 40 },
+                speedText: "Find-S is faster (95 vs 60)",
+                accuracyText: "SVM is more accurate (90% vs 87%)",
+                noiseText: "SVM handles noise much better (80 vs 30)",
+                interpretabilityText: "Find-S is much more interpretable (90 vs 40)",
+                winner: "Support Vector Machine",
+                winnerDetails: "SVM wins on accuracy and noise handling"
+            },
+            "knn": {
+                name: "k-Nearest Neighbors",
+                speed: { findS: 95, algo: 30 },
+                accuracy: { findS: 87, algo: 88 },
+                noise: { findS: 30, algo: 70 },
+                interpretability: { findS: 90, algo: 50 },
+                speedText: "Find-S is much faster (95 vs 30)",
+                accuracyText: "k-NN is slightly more accurate (88% vs 87%)",
+                noiseText: "k-NN handles noise better (70 vs 30)",
+                interpretabilityText: "Find-S is more interpretable (90 vs 50)",
+                winner: "k-Nearest Neighbors",
+                winnerDetails: "k-NN wins on accuracy and noise handling"
+            },
+            "wknn": {
+                name: "Weighted k-NN",
+                speed: { findS: 95, algo: 25 },
+                accuracy: { findS: 87, algo: 89 },
+                noise: { findS: 30, algo: 75 },
+                interpretability: { findS: 90, algo: 40 },
+                speedText: "Find-S is much faster (95 vs 25)",
+                accuracyText: "Weighted k-NN is more accurate (89% vs 87%)",
+                noiseText: "Weighted k-NN handles noise better (75 vs 30)",
+                interpretabilityText: "Find-S is more interpretable (90 vs 40)",
+                winner: "Weighted k-NN",
+                winnerDetails: "Weighted k-NN wins on accuracy and noise handling"
+            },
+            "em": {
+                name: "Expectation Maximization",
+                speed: { findS: 95, algo: 40 },
+                accuracy: { findS: 87, algo: 86 },
+                noise: { findS: 30, algo: 85 },
+                interpretability: { findS: 90, algo: 50 },
+                speedText: "Find-S is much faster (95 vs 40)",
+                accuracyText: "Find-S is slightly more accurate (87% vs 86%)",
+                noiseText: "EM handles noise much better (85 vs 30)",
+                interpretabilityText: "Find-S is more interpretable (90 vs 50)",
+                winner: "Find-S",
+                winnerDetails: "Find-S wins on accuracy and interpretability"
+            },
+            "slp": {
+                name: "Single Layer Perceptron",
+                speed: { findS: 95, algo: 70 },
+                accuracy: { findS: 87, algo: 84 },
+                noise: { findS: 30, algo: 65 },
+                interpretability: { findS: 90, algo: 60 },
+                speedText: "Find-S is faster (95 vs 70)",
+                accuracyText: "Find-S is more accurate (87% vs 84%)",
+                noiseText: "SLP handles noise better (65 vs 30)",
+                interpretabilityText: "Find-S is more interpretable (90 vs 60)",
+                winner: "Find-S",
+                winnerDetails: "Find-S wins on accuracy and interpretability"
+            },
+            "mlp": {
+                name: "Multi-Layer Perceptron",
+                speed: { findS: 95, algo: 50 },
+                accuracy: { findS: 87, algo: 89 },
+                noise: { findS: 30, algo: 80 },
+                interpretability: { findS: 90, algo: 30 },
+                speedText: "Find-S is much faster (95 vs 50)",
+                accuracyText: "MLP is more accurate (89% vs 87%)",
+                noiseText: "MLP handles noise much better (80 vs 30)",
+                interpretabilityText: "Find-S is much more interpretable (90 vs 30)",
+                winner: "Multi-Layer Perceptron",
+                winnerDetails: "MLP wins on accuracy and noise handling"
+            }
+        };
+
+        // DOM elements
+        const select = document.getElementById("algorithm-select");
+        const resultsDiv = document.getElementById("results");
+        const algoNameSpan = document.getElementById("algo-name");
+        let radarChart = null;
+
+        // Tab functionality
+        const tabs = document.querySelectorAll(".tab");
+        tabs.forEach(tab => {
+            tab.addEventListener("click", () => {
+                tabs.forEach(t => t.classList.remove("active"));
+                tab.classList.add("active");
+                
+                document.querySelectorAll(".tab-content").forEach(content => {
+                    content.classList.remove("active");
+                });
+                document.getElementById(tab.dataset.tab).classList.add("active");
+            });
+        });
+        
+        // Create bar graph
+        function createBarGraph(containerId, findSValue, algoValue) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            // Find-S bar
+            const findSBar = document.createElement('div');
+            findSBar.className = 'bar bar-find-s';
+            findSBar.style.height = `${findSValue}%`;
+            
+            const findSValueSpan = document.createElement('div');
+            findSValueSpan.className = 'bar-value';
+            findSValueSpan.textContent = findSValue;
+            findSBar.appendChild(findSValueSpan);
+            
+            const findSLabel = document.createElement('div');
+            findSLabel.className = 'bar-label';
+            findSLabel.textContent = 'Find-S';
+            findSBar.appendChild(findSLabel);
+            
+            container.appendChild(findSBar);
+            
+            // Algorithm bar
+            const algoBar = document.createElement('div');
+            algoBar.className = 'bar bar-algo';
+            algoBar.style.height = `${algoValue}%`;
+            
+            const algoValueSpan = document.createElement('div');
+            algoValueSpan.className = 'bar-value';
+            algoValueSpan.textContent = algoValue;
+            algoBar.appendChild(algoValueSpan);
+            
+            const algoLabel = document.createElement('div');
+            algoLabel.className = 'bar-label';
+            algoLabel.textContent = 'Algo';
+            algoBar.appendChild(algoLabel);
+            
+            container.appendChild(algoBar);
+        }
+        
+        // Create radar chart
+        function createRadarChart(algoData) {
+            const ctx = document.getElementById('radar-chart').getContext('2d');
+            
+            if (radarChart) {
+                radarChart.destroy();
+            }
+            
+            radarChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Training Speed', 'Accuracy', 'Noise Handling', 'Interpretability'],
+                    datasets: [
+                        {
+                            label: 'Find-S',
+                            data: [
+                                algoData.speed.findS,
+                                algoData.accuracy.findS,
+                                algoData.noise.findS,
+                                algoData.interpretability.findS
+                            ],
+                            backgroundColor: 'rgba(33, 150, 243, 0.2)',
+                            borderColor: 'rgba(33, 150, 243, 1)',
+                            borderWidth: 2,
+                            pointBackgroundColor: 'rgba(33, 150, 243, 1)'
+                        },
+                        {
+                            label: algoData.name,
+                            data: [
+                                algoData.speed.algo,
+                                algoData.accuracy.algo,
+                                algoData.noise.algo,
+                                algoData.interpretability.algo
+                            ],
+                            backgroundColor: 'rgba(255, 193, 7, 0.2)',
+                            borderColor: 'rgba(255, 193, 7, 1)',
+                            borderWidth: 2,
+                            pointBackgroundColor: 'rgba(255, 193, 7, 1)'
+                        }
+                    ]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            angleLines: {
+                                display: true
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 100,
+                            ticks: {
+                                stepSize: 20
+                            }
+                        }
+                    },
+                    elements: {
+                        line: {
+                            tension: 0.1
+                        }
+                    }
+                }
+            });
+        }
+        
+        // When selection changes
+        select.addEventListener("change", function() {
+            const selected = this.value;
+            
+            if (!selected) {
+                resultsDiv.style.display = 'none';
+                return;
+            }
+            
+            // Get the selected algorithm's data
+            const algo = algorithms[selected];
+            algoNameSpan.textContent = algo.name;
+            
+            // Update bar graphs
+            createBarGraph("speed-graph", algo.speed.findS, algo.speed.algo);
+            createBarGraph("accuracy-graph", algo.accuracy.findS, algo.accuracy.algo);
+            createBarGraph("noise-graph", algo.noise.findS, algo.noise.algo);
+            createBarGraph("interpretability-graph", algo.interpretability.findS, algo.interpretability.algo);
+            
+            // Create radar chart
+            createRadarChart(algo);
+            
+            // Update text comparisons
+            document.getElementById("speed-text").textContent = algo.speedText;
+            document.getElementById("accuracy-text").textContent = algo.accuracyText;
+            document.getElementById("noise-text").textContent = algo.noiseText;
+            document.getElementById("interpretability-text").textContent = algo.interpretabilityText;
+            document.getElementById("overall-winner").textContent = algo.winner;
+            
+            // Update winners
+            document.getElementById("speed-winner").textContent = 
+                algo.speed.findS > algo.speed.algo ? "(Find-S wins)" : `(${algo.name} wins)`;
+            document.getElementById("accuracy-winner").textContent = 
+                algo.accuracy.findS > algo.accuracy.algo ? "(Find-S wins)" : `(${algo.name} wins)`;
+            document.getElementById("noise-winner").textContent = 
+                algo.noise.findS > algo.noise.algo ? "(Find-S wins)" : `(${algo.name} wins)`;
+            document.getElementById("interpretability-winner").textContent = 
+                algo.interpretability.findS > algo.interpretability.algo ? "(Find-S wins)" : `(${algo.name} wins)`;
+            
+            // Show results
+            resultsDiv.style.display = 'block';
+            resultsDiv.scrollIntoView({ behavior: 'smooth' });
+        });
+        
+        // Create background particles when page loads
+        window.addEventListener('load', createParticles);
+    </script>
+</body>
+</html>

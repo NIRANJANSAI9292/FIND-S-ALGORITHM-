@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Find-S Spam Detector</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #ff6b6b;
+      --secondary: #ffa3a3;
+      --accent: #4a90e2;
+      --bg-dark: #1a1a2e;
+      --card-bg: rgba(26, 26, 46, 0.9);
+      --text-light: #f1f1f1;
+      --text-muted: #b8b8d1;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-light);
+      margin: 0;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1, h2, h3 {
+      font-family: 'Press Start 2P', cursive;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    h1 {
+      font-size: 2rem;
+      text-align: center;
+      margin-bottom: 1rem;
+      text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+
+    h2 {
+      font-size: 1.3rem;
+      margin-top: 2rem;
+    }
+
+    .game-container {
+      display: flex;
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+
+    .panel {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 1.5rem;
+      border: 2px solid rgba(255, 107, 107, 0.3);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .dataset-panel {
+      flex: 1;
+    }
+
+    .visualization-panel {
+      flex: 1;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: 0.9rem;
+    }
+
+    th, td {
+      padding: 0.8rem;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 107, 107, 0.2);
+    }
+
+    th {
+      background: rgba(255, 107, 107, 0.1);
+      color: var(--secondary);
+    }
+
+    tr:hover {
+      background: rgba(255, 163, 163, 0.05);
+    }
+
+    .spam {
+      background: rgba(255, 107, 107, 0.1);
+      border-left: 3px solid var(--primary);
+    }
+
+    .ham {
+      background: rgba(100, 255, 100, 0.1);
+      border-left: 3px solid #64ff64;
+    }
+
+    .processing {
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0% { background-color: rgba(255, 107, 107, 0.1); }
+      50% { background-color: rgba(255, 107, 107, 0.3); }
+      100% { background-color: rgba(255, 107, 107, 0.1); }
+    }
+
+    .hypothesis-display {
+      background: rgba(40, 40, 70, 0.6);
+      padding: 1.5rem;
+      border-radius: 12px;
+      margin: 1.5rem 0;
+      border: 1px solid var(--primary);
+      font-family: monospace;
+      font-size: 1.1rem;
+      min-height: 120px;
+      position: relative;
+    }
+
+    .hypothesis-item {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      margin: 0.3rem;
+      border-radius: 8px;
+      background: rgba(255, 107, 107, 0.2);
+      transition: all 0.3s ease;
+    }
+
+    .hypothesis-item.changed {
+      animation: highlight 0.8s ease;
+      background: rgba(255, 163, 163, 0.4);
+    }
+
+    @keyframes highlight {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); background: var(--accent); }
+      100% { transform: scale(1); }
+    }
+
+    .controls {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    button {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: var(--bg-dark);
+      border: none;
+      padding: 0.8rem 1.5rem;
+      border-radius: 50px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: 'Press Start 2P', cursive;
+      font-size: 0.7rem;
+      flex: 1;
+    }
+
+    button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 16px rgba(255, 107, 107, 0.4);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    .progress-container {
+      margin-top: 1.5rem;
+    }
+
+    .progress-bar {
+      height: 10px;
+      background: rgba(255, 107, 107, 0.2);
+      border-radius: 5px;
+      overflow: hidden;
+    }
+
+    .progress {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      width: 0%;
+      transition: width 0.5s ease;
+    }
+
+    .feedback {
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: 8px;
+      background: rgba(255, 163, 163, 0.1);
+      border-left: 3px solid var(--secondary);
+      display: none;
+    }
+
+    .feature-key {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .feature {
+      background: rgba(255, 107, 107, 0.1);
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+    }
+
+    .sound-toggle {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: none;
+      border: none;
+      color: var(--text-light);
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    .confetti {
+      position: fixed;
+      width: 10px;
+      height: 10px;
+      background-color: var(--accent);
+      opacity: 0;
+      z-index: 100;
+    }
+
+    .email-preview {
+      background: rgba(40, 40, 70, 0.6);
+      padding: 1rem;
+      border-radius: 8px;
+      margin-top: 1rem;
+      border: 1px solid rgba(255, 107, 107, 0.3);
+      font-family: monospace;
+      white-space: pre-wrap;
+    }
+
+    @media (max-width: 768px) {
+      .game-container {
+        flex-direction: column;
+      }
+      
+      h1 {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <button id="soundToggle" class="sound-toggle" title="Toggle sound">
+      <i class="fas fa-volume-up"></i>
+    </button>
+    
+    <h1>SPAM DETECTOR</h1>
+    <p>Watch how the Find-S algorithm learns to identify spam emails!</p>
+    
+    <div class="game-container">
+      <div class="dataset-panel panel">
+        <h2>TRAINING EMAILS</h2>
+        <table id="datasetTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Urgent</th>
+              <th>Free</th>
+              <th>Winner</th>
+              <th>Money</th>
+              <th>Class</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Filled by JavaScript -->
+          </tbody>
+        </table>
+        
+        <div class="feature-key">
+          <div class="feature"><strong>Features:</strong> Presence of spam trigger words</div>
+          <div class="feature"><strong>Urgent:</strong> "Urgent", "Immediate"</div>
+          <div class="feature"><strong>Free:</strong> "Free", "Discount"</div>
+          <div class="feature"><strong>Winner:</strong> "Winner", "Prize"</div>
+          <div class="feature"><strong>Money:</strong> "$", "Cash", "Millions"</div>
+        </div>
+      </div>
+      
+      <div class="visualization-panel panel">
+        <h2>SPAM DETECTION</h2>
+        
+        <div class="hypothesis-display">
+          <p>Current Spam Pattern:</p>
+          <div id="hypothesisContainer">
+            <!-- Filled by JavaScript -->
+          </div>
+        </div>
+        
+        <div class="email-preview" id="emailPreview">
+          <strong>Sample Email:</strong>
+          <div id="currentEmail">Select an email to preview</div>
+        </div>
+        
+        <div class="feedback" id="feedback">
+          <!-- Filled by JavaScript -->
+        </div>
+        
+        <div class="controls">
+          <button id="nextBtn">NEXT EMAIL <i class="fas fa-forward"></i></button>
+          <button id="autoBtn">AUTO RUN <i class="fas fa-bolt"></i></button>
+          <button id="resetBtn">RESET <i class="fas fa-undo"></i></button>
+        </div>
+        
+        <div class="progress-container">
+          <p>Learning Progress:</p>
+          <div class="progress-bar">
+            <div class="progress" id="progressBar"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <audio id="positiveSound" src="https://assets.mixkit.co/sfx/preview/mixkit-positive-interface-beep-221.mp3"></audio>
+  <audio id="generalizeSound" src="https://assets.mixkit.co/sfx/preview/mixkit-unlock-game-notification-253.mp3"></audio>
+  <audio id="completeSound" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3"></audio>
+
+  <script>
+    // Sound effects
+    const sounds = {
+      positive: document.getElementById('positiveSound'),
+      generalize: document.getElementById('generalizeSound'),
+      complete: document.getElementById('completeSound')
+    };
+    let soundEnabled = true;
+
+    // Toggle sound
+    document.getElementById('soundToggle').addEventListener('click', () => {
+      soundEnabled = !soundEnabled;
+      document.getElementById('soundToggle').innerHTML = 
+        soundEnabled ? '<i class="fas fa-volume-up"></i>' : '<i class="fas fa-volume-mute"></i>';
+    });
+
+    // Dataset - Spam (1) vs Ham (0)
+    const emails = [
+      { 
+        id: 1, 
+        features: ["Yes", "Yes", "No", "Yes"], 
+        class: "Spam",
+        content: "Urgent! You've won $1,000,000!\n\nClick here to claim your FREE prize now!"
+      },
+      { 
+        id: 2, 
+        features: ["No", "No", "No", "No"], 
+        class: "Ham",
+        content: "Hi John,\n\nJust checking in about our meeting tomorrow.\n\nBest,\nSarah"
+      },
+      { 
+        id: 3, 
+        features: ["Yes", "Yes", "Yes", "No"], 
+        class: "Spam",
+        content: "CONGRATULATIONS WINNER!\n\nYou're selected for a FREE vacation!"
+      },
+      { 
+        id: 4, 
+        features: ["No", "No", "No", "No"], 
+        class: "Ham",
+        content: "Monthly Report\n\nAttached is your monthly statement."
+      },
+      { 
+        id: 5, 
+        features: ["No", "Yes", "No", "Yes"], 
+        class: "Spam",
+        content: "Limited time offer: Get FREE cash with this $1 investment!"
+      }
+    ];
+
+    // Initialize
+    let currentExample = 0;
+    let currentHypothesis = Array(4).fill('∅');
+    const featureNames = ["Urgent", "Free", "Winner", "Money"];
+    let autoRunInterval = null;
+
+    // DOM Elements
+    const datasetTable = document.getElementById('datasetTable').getElementsByTagName('tbody')[0];
+    const hypothesisContainer = document.getElementById('hypothesisContainer');
+    const feedbackDiv = document.getElementById('feedback');
+    const currentEmailDiv = document.getElementById('currentEmail');
+    const nextBtn = document.getElementById('nextBtn');
+    const autoBtn = document.getElementById('autoBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const progressBar = document.getElementById('progressBar');
+
+    // Initialize table
+    function renderDataset() {
+      datasetTable.innerHTML = '';
+      emails.forEach((email, index) => {
+        const row = datasetTable.insertRow();
+        row.className = index < currentExample ? 'processed' : '';
+        if (email.class === "Spam") row.classList.add('spam');
+        else row.classList.add('ham');
+        
+        row.insertCell(0).textContent = email.id;
+        email.features.forEach((feat, i) => {
+          row.insertCell(i+1).textContent = feat;
+        });
+        row.insertCell(5).textContent = email.class;
+        
+        // Click to preview email
+        row.onclick = () => {
+          currentEmailDiv.textContent = email.content;
+          // Highlight selected row
+          Array.from(datasetTable.rows).forEach(r => r.classList.remove('selected'));
+          row.classList.add('selected');
+        };
+      });
+      
+      // Show first email by default
+      if (emails.length > 0) {
+        currentEmailDiv.textContent = emails[0].content;
+        datasetTable.rows[0].classList.add('selected');
+      }
+    }
+
+    // Render hypothesis
+    function renderHypothesis() {
+      hypothesisContainer.innerHTML = '';
+      currentHypothesis.forEach((val, i) => {
+        const span = document.createElement('span');
+        span.className = 'hypothesis-item';
+        span.id = `hyp-${i}`;
+        span.innerHTML = `<strong>${featureNames[i]}:</strong> ${val}`;
+        hypothesisContainer.appendChild(span);
+      });
+    }
+
+    // Highlight changed feature
+    function highlightChange(index) {
+      const elem = document.getElementById(`hyp-${index}`);
+      elem.classList.add('changed');
+      setTimeout(() => elem.classList.remove('changed'), 1000);
+    }
+
+    // Show feedback
+    function showFeedback(message) {
+      feedbackDiv.style.display = 'block';
+      feedbackDiv.innerHTML = message;
+    }
+
+    // Play sound
+    function playSound(type) {
+      if (soundEnabled) {
+        sounds[type].currentTime = 0;
+        sounds[type].play();
+      }
+    }
+
+    // Create confetti
+    function createConfetti() {
+      for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = Math.random() * 100 + 'vw';
+        confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+        confetti.style.width = Math.random() * 10 + 5 + 'px';
+        confetti.style.height = Math.random() * 10 + 5 + 'px';
+        document.body.appendChild(confetti);
+        
+        const animation = confetti.animate([
+          { top: '-10px', opacity: 1, transform: 'rotate(0deg)' },
+          { top: '100vh', opacity: 0, transform: 'rotate(360deg)' }
+        ], {
+          duration: Math.random() * 3000 + 2000,
+          easing: 'cubic-bezier(0.1, 0.8, 0.3, 1)'
+        });
+        
+        animation.onfinish = () => confetti.remove();
+      }
+    }
+
+    // Update progress bar
+    function updateProgress() {
+      progressBar.style.width = (currentExample / emails.length * 100) + '%';
+    }
+
+    // Process next example
+    function processNextExample() {
+      if (currentExample >= emails.length) {
+        showFeedback('🎉 All emails processed! Final spam pattern detected!');
+        playSound('complete');
+        createConfetti();
+        nextBtn.disabled = true;
+        autoBtn.disabled = true;
+        return;
+      }
+
+      const email = emails[currentExample];
+      let feedback = '';
+      
+      // Highlight current row
+      const rows = datasetTable.rows;
+      rows[currentExample].classList.add('processing');
+      setTimeout(() => rows[currentExample].classList.remove('processing'), 1000);
+
+      // Show current email
+      currentEmailDiv.textContent = email.content;
+
+      if (email.class === "Spam") {
+        playSound('positive');
+        feedback = `<strong>Processing Email #${email.id}:</strong> SPAM example - updating pattern...<br>`;
+        
+        let changed = false;
+        for (let i = 0; i < email.features.length; i++) {
+          if (currentHypothesis[i] === '∅') {
+            currentHypothesis[i] = email.features[i];
+            feedback += `- Initialized <strong>${featureNames[i]}</strong> to <strong>${email.features[i]}</strong><br>`;
+            highlightChange(i);
+            changed = true;
+          } else if (currentHypothesis[i] !== email.features[i] && currentHypothesis[i] !== '?') {
+            currentHypothesis[i] = '?';
+            feedback += `- Generalized <strong>${featureNames[i]}</strong> to <strong>?</strong> (not consistent)<br>`;
+            highlightChange(i);
+            playSound('generalize');
+            changed = true;
+          }
+        }
+        
+        if (!changed) {
+          feedback += 'No changes needed - pattern already matches this spam email';
+        }
+      } else {
+        feedback = `<strong>Processing Email #${email.id}:</strong> HAM (not spam) - ignored by Find-S algorithm`;
+      }
+
+      showFeedback(feedback);
+      renderHypothesis();
+      currentExample++;
+      updateProgress();
+      
+      if (currentExample >= emails.length) {
+        nextBtn.disabled = true;
+        autoBtn.disabled = true;
+      }
+    }
+
+    // Auto-run through all examples
+    function autoRun() {
+      if (autoRunInterval) {
+        clearInterval(autoRunInterval);
+        autoRunInterval = null;
+        autoBtn.innerHTML = '<i class="fas fa-bolt"></i> AUTO RUN';
+        return;
+      }
+      
+      autoBtn.innerHTML = '<i class="fas fa-stop"></i> STOP';
+      autoRunInterval = setInterval(() => {
+        processNextExample();
+        if (currentExample >= emails.length) {
+          clearInterval(autoRunInterval);
+          autoRunInterval = null;
+          autoBtn.innerHTML = '<i class="fas fa-bolt"></i> AUTO RUN';
+        }
+      }, 2000);
+    }
+
+    // Reset everything
+    function reset() {
+      currentExample = 0;
+      currentHypothesis = Array(4).fill('∅');
+      renderDataset();
+      renderHypothesis();
+      feedbackDiv.style.display = 'none';
+      nextBtn.disabled = false;
+      autoBtn.disabled = false;
+      autoBtn.innerHTML = '<i class="fas fa-bolt"></i> AUTO RUN';
+      if (autoRunInterval) {
+        clearInterval(autoRunInterval);
+        autoRunInterval = null;
+      }
+      updateProgress();
+    }
+
+    // Event listeners
+    nextBtn.addEventListener('click', processNextExample);
+    autoBtn.addEventListener('click', autoRun);
+    resetBtn.addEventListener('click', reset);
+
+    // Initialize
+    renderDataset();
+    renderHypothesis();
+    updateProgress();
+  </script>
+</body>
+</html>

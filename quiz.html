@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find-S Algorithm Quiz</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #27ae60;
+            --wrong-color: #e74c3c;
+            --background-light: #f5f5f5;
+            --background-dark: #1e1e1e;
+            --text-light: #333;
+            --text-dark: #f5f5f5;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-light);
+            color: var(--text-light);
+            margin: 0;
+            padding: 0;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body.dark {
+            background-color: var(--background-dark);
+            color: var(--text-dark);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .quiz-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 2rem;
+            margin-top: 1rem;
+        }
+
+        body.dark .quiz-container {
+            background: #2c2c2c;
+        }
+
+        /* Level Selection Styles */
+        .level-selector {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .level-btn {
+            padding: 0.75rem 1.5rem;
+            margin: 0.5rem;
+            border: 2px solid var(--primary-color);
+            border-radius: 5px;
+            background: white;
+            color: var(--primary-color);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            min-width: 150px;
+            display: inline-block;
+        }
+        
+        body.dark .level-btn {
+            background: #2c2c2c;
+            color: var(--primary-color);
+        }
+        
+        .level-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        body.dark .level-btn:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .level-btn.active {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .badge {
+            display: inline-block;
+            background: var(--secondary-color);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-left: 0.5rem;
+            font-weight: bold;
+        }
+        
+        .locked-badge {
+            background: var(--wrong-color);
+        }
+        
+        .level-description {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(74, 144, 226, 0.1);
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .level-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            transition: all 0.3s;
+        }
+        
+        body.dark .level-card {
+            border-color: #444;
+        }
+        
+        .level-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .level-card h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+        
+        .level-card.unlocked {
+            border-left: 4px solid var(--secondary-color);
+        }
+        
+        .level-card.locked {
+            opacity: 0.7;
+        }
+        
+        /* Quiz Content Styles */
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .progress-container {
+            margin-bottom: 2rem;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: #eee;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        body.dark .progress-bar {
+            background: #333;
+        }
+
+        .progress {
+            height: 100%;
+            background: var(--primary-color);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .question-container {
+            margin-bottom: 2rem;
+            min-height: 200px;
+        }
+
+        .question {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .option {
+            padding: 1rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        body.dark .option {
+            border-color: #555;
+        }
+
+        .option:hover {
+            border-color: var(--primary-color);
+            background: rgba(74, 144, 226, 0.05);
+        }
+
+        body.dark .option:hover {
+            background: rgba(74, 144, 226, 0.1);
+        }
+
+        .option.selected {
+            border-color: var(--primary-color);
+            background: rgba(74, 144, 226, 0.1);
+        }
+
+        .option.correct {
+            border-color: var(--secondary-color);
+            background: rgba(39, 174, 96, 0.1);
+        }
+
+        .option.wrong {
+            border-color: var(--wrong-color);
+            background: rgba(231, 76, 60, 0.1);
+        }
+
+        .feedback {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .correct-feedback {
+            background: rgba(39, 174, 96, 0.1);
+            border-left: 4px solid var(--secondary-color);
+        }
+
+        .wrong-feedback {
+            background: rgba(231, 76, 60, 0.1);
+            border-left: 4px solid var(--wrong-color);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+        }
+
+        button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background: var(--primary-color);
+            color: white;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+
+        button:hover {
+            background: #357abd;
+        }
+
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+
+        body.dark button:disabled {
+            background: #555;
+        }
+
+        .result-container {
+            text-align: center;
+            padding: 2rem;
+            display: none;
+        }
+
+        .score {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin: 1rem 0;
+        }
+
+        .quiz-icon {
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        body.dark .quiz-icon {
+            color: var(--primary-color);
+        }
+
+        .code-block {
+            font-family: monospace;
+            background: #f5f5f5;
+            padding: 1rem;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+
+        body.dark .code-block {
+            background: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        th, td {
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        body.dark th, body.dark td {
+            border-color: #444;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        body.dark th {
+            background-color: #333;
+        }
+
+        /* Streak Counter */
+        .streak-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 50px;
+            padding: 0.5rem 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            z-index: 100;
+        }
+        
+        body.dark .streak-container {
+            background: #333;
+        }
+        
+        .streak-count {
+            font-weight: bold;
+            margin-left: 0.5rem;
+            color: var(--primary-color);
+        }
+        
+        /* Timer */
+        .timer-container {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: white;
+            border-radius: 50px;
+            padding: 0.5rem 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            z-index: 100;
+        }
+        
+        body.dark .timer-container {
+            background: #333;
+        }
+        
+        .timer {
+            font-weight: bold;
+            margin-left: 0.5rem;
+            color: var(--primary-color);
+        }
+        
+        /* Confetti */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            top: -10px;
+            z-index: 999;
+        }
+        
+        /* Example indicators */
+        .positive-example {
+            color: var(--secondary-color);
+            font-weight: bold;
+        }
+        
+        .negative-example {
+            color: var(--wrong-color);
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="quiz-container">
+            <!-- Level Selection Screen -->
+            <div id="level-selection">
+                <h2><i class="fas fa-chess-board quiz-icon"></i> Find-S Algorithm Quiz</h2>
+                <p>Test your knowledge at different difficulty levels. Complete each level to unlock the next!</p>
+                
+                <div class="level-cards">
+                    <!-- Level 1 Card -->
+                    <div class="level-card unlocked" data-level="1">
+                        <h3>Level 1: Beginner</h3>
+                        <p>Learn the basic concepts of Find-S algorithm</p>
+                        <button class="level-btn" data-level="1">
+                            Start <span class="badge">Unlocked</span>
+                        </button>
+                        <div class="level-description">
+                            <p><i class="fas fa-check-circle"></i> Basic terminology</p>
+                            <p><i class="fas fa-check-circle"></i> Simple examples</p>
+                            <p><i class="fas fa-check-circle"></i> 5 questions</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Level 2 Card -->
+                    <div class="level-card locked" data-level="2" id="level2-card">
+                        <h3>Level 2: Intermediate</h3>
+                        <p>Apply Find-S to practical scenarios</p>
+                        <button class="level-btn" data-level="2">
+                            Start <span class="badge locked-badge" id="lock-level2">Locked</span>
+                        </button>
+                        <div class="level-description">
+                            <p><i class="fas fa-check-circle"></i> Small datasets</p>
+                            <p><i class="fas fa-check-circle"></i> Hypothesis tracking</p>
+                            <p><i class="fas fa-check-circle"></i> 7 questions</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Level 3 Card -->
+                    <div class="level-card locked" data-level="3" id="level3-card">
+                        <h3>Level 3: Advanced</h3>
+                        <p>Handle complex scenarios and edge cases</p>
+                        <button class="level-btn" data-level="3">
+                            Start <span class="badge locked-badge" id="lock-level3">Locked</span>
+                        </button>
+                        <div class="level-description">
+                            <p><i class="fas fa-check-circle"></i> Complex examples</p>
+                            <p><i class="fas fa-check-circle"></i> Algorithm limitations</p>
+                            <p><i class="fas fa-check-circle"></i> 8 questions</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Level 4 Card -->
+                    <div class="level-card locked" data-level="4" id="level4-card">
+                        <h3>Level 4: Expert Challenge</h3>
+                        <p>Timed challenges with real-world datasets</p>
+                        <button class="level-btn" data-level="4">
+                            Start <span class="badge locked-badge" id="lock-level4">Locked</span>
+                        </button>
+                        <div class="level-description">
+                            <p><i class="fas fa-check-circle"></i> 60-second timer</p>
+                            <p><i class="fas fa-check-circle"></i> Real-world data</p>
+                            <p><i class="fas fa-check-circle"></i> 10 questions</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quiz Content (hidden initially) -->
+            <div id="quiz-content" style="display: none;">
+                <div class="quiz-header">
+                    <h2 id="level-title"><i class="fas fa-question-circle quiz-icon"></i> Find-S Quiz</h2>
+                    <div id="score-display">Question 1 of 5</div>
+                </div>
+
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress" id="progress"></div>
+                    </div>
+                </div>
+
+                <div class="question-container" id="question-container">
+                    <div class="question" id="question"></div>
+                    <div class="options" id="options"></div>
+                    <div class="feedback" id="feedback"></div>
+                </div>
+
+                <div class="controls">
+                    <button id="prev-btn" disabled><i class="fas fa-arrow-left"></i> Previous</button>
+                    <button id="hint-btn"><i class="fas fa-lightbulb"></i> Hint</button>
+                    <button id="next-btn">Next <i class="fas fa-arrow-right"></i></button>
+                    <button id="submit-btn" style="display: none;">Submit Quiz</button>
+                </div>
+            </div>
+
+            <div class="result-container" id="result-container">
+                <h2>Level Complete!</h2>
+                <div class="score" id="final-score"></div>
+                <p id="result-message"></p>
+                <div id="unlock-message" style="margin: 1.5rem 0;"></div>
+                <button id="retry-btn"><i class="fas fa-redo"></i> Try Again</button>
+                <button id="level-select-btn"><i class="fas fa-chess-board"></i> Choose Level</button>
+                <button id="home-btn" onclick="window.location.href='index.html'"><i class="fas fa-home"></i> Back to Home</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Streak Counter -->
+    <div class="streak-container" id="streak-container" style="display: none;">
+        <i class="fas fa-fire" style="color: orange;"></i>
+        <span class="streak-count">0</span>
+    </div>
+
+    <!-- Timer -->
+    <div class="timer-container" id="timer-container" style="display: none;">
+        <i class="fas fa-clock" style="color: var(--primary-color);"></i>
+        <span class="timer">60</span>
+    </div>
+
+    <script>
+        // ======================
+        // Quiz Data
+        // ======================
+        const levelQuestions = {
+            1: [
+                {
+                    type: "concept",
+                    question: "What does the 'S' in Find-S stand for?",
+                    options: [
+                        "Specific",
+                        "Solution",
+                        "Search",
+                        "Set"
+                    ],
+                    correct: 0,
+                    explanation: "Find-S stands for finding the <strong>most specific hypothesis</strong> consistent with the training examples.",
+                    hint: "Think about what type of hypothesis the algorithm tries to find"
+                },
+                {
+                    type: "hypothesis",
+                    question: "What is the initial hypothesis in Find-S?",
+                    options: [
+                        "[?, ?, ?, ?] (most general)",
+                        "[Φ, Φ, Φ, Φ] (most specific)",
+                        "An empty set",
+                        "A random hypothesis"
+                    ],
+                    correct: 1,
+                    explanation: "Find-S starts with the <strong>most specific hypothesis</strong> (Φ) and generalizes it as needed.",
+                    hint: "The algorithm begins with the most restrictive possible hypothesis"
+                },
+                {
+                    type: "example",
+                    question: "Given the initial hypothesis [Φ, Φ] and first positive example [Sunny, Warm], what's the new hypothesis?",
+                    options: [
+                        "[?, ?]",
+                        "[Sunny, Warm]",
+                        "[Φ, Φ]",
+                        "[Sunny, ?]"
+                    ],
+                    correct: 1,
+                    explanation: "The first positive example becomes the initial hypothesis: <strong>[Sunny, Warm]</strong>",
+                    hint: "The algorithm adopts the first positive example exactly"
+                },
+                {
+                    type: "properties",
+                    question: "Which of these is TRUE about Find-S?",
+                    options: [
+                        "It considers both positive and negative examples",
+                        "It starts with the most general hypothesis",
+                        "It ignores negative examples",
+                        "It always finds the optimal hypothesis"
+                    ],
+                    correct: 2,
+                    explanation: "Find-S <strong>only considers positive examples</strong> and ignores negative ones.",
+                    hint: "Remember what examples the algorithm pays attention to"
+                },
+                {
+                    type: "scenario",
+                    question: "What happens if all training examples are negative?",
+                    options: [
+                        "Hypothesis remains [Φ, Φ, Φ, Φ]",
+                        "Algorithm returns an error",
+                        "Hypothesis becomes [?, ?, ?, ?]",
+                        "Algorithm uses the first negative example"
+                    ],
+                    correct: 0,
+                    explanation: "With no positive examples, the hypothesis <strong>remains [Φ, Φ, Φ, Φ]</strong> (most specific).",
+                    hint: "No positive examples means no generalization occurs"
+                }
+            ],
+            2: [
+                {
+                    type: "concept",
+                    question: "In Find-S, what happens when a new positive example contradicts the current hypothesis?",
+                    options: [
+                        "The algorithm stops and returns an error",
+                        "The hypothesis is generalized to accommodate the new example",
+                        "The example is ignored",
+                        "The hypothesis is made more specific"
+                    ],
+                    correct: 1,
+                    explanation: "When a positive example contradicts the current hypothesis, the algorithm <strong>generalizes the hypothesis</strong> to accommodate it by replacing specific attributes with '?'.",
+                    hint: "Think about how the algorithm handles inconsistent positive examples"
+                },
+                {
+                    type: "example",
+                    question: "Given current hypothesis [Sunny, ?, ?] and new <span class='positive-example'>positive example [Sunny, Warm, High]</span>, what's the new hypothesis?",
+                    options: [
+                        "[Sunny, Warm, High]",
+                        "[Sunny, ?, ?]",
+                        "[Sunny, Warm, ?]",
+                        "[?, ?, ?]"
+                    ],
+                    correct: 1,
+                    explanation: "The hypothesis becomes <strong>[Sunny, Warm, ?]</strong> as it generalizes to include the new positive example while remaining as specific as possible.",
+                    hint: "The algorithm generalizes only the attributes that need to change"
+                },
+                {
+                    type: "tracking",
+                    question: "Given these examples in order: <span class='positive-example'>[Sunny, Warm, Normal] (pos)</span>, <span class='negative-example'>[Rainy, Cold, High] (neg)</span>, <span class='positive-example'>[Sunny, Warm, High] (pos)</span>, what is the final hypothesis?",
+                    options: [
+                        "[Sunny, Warm, ?]",
+                        "[?, ?, ?]",
+                        "[Sunny, ?, ?]",
+                        "[Sunny, Warm, High]"
+                    ],
+                    correct: 0,
+                    explanation: "The final hypothesis is <strong>[Sunny, Warm, ?]</strong>. The second example is negative (ignored), and the third causes generalization of the third attribute.",
+                    hint: "Remember to ignore negative examples and track changes from positive ones"
+                },
+                {
+                    type: "properties",
+                    question: "Which of these is a limitation of Find-S?",
+                    options: [
+                        "It can't handle continuous-valued attributes",
+                        "It assumes the target concept is in the hypothesis space",
+                        "It requires many negative examples",
+                        "It's computationally expensive"
+                    ],
+                    correct: 1,
+                    explanation: "Find-S <strong>assumes the target concept is in the hypothesis space</strong> and that the training data is noise-free, which are significant limitations.",
+                    hint: "Think about the assumptions the algorithm makes"
+                },
+                {
+                    type: "scenario",
+                    question: "If the initial <span class='positive-example'>positive example</span> is [Rainy, Cold, Normal], what would be the initial hypothesis?",
+                    options: [
+                        "[Rainy, Cold, Normal]",
+                        "[?, ?, ?]",
+                        "[Φ, Φ, Φ]",
+                        "[Rainy, ?, ?]"
+                    ],
+                    correct: 0,
+                    explanation: "The first positive example <strong>becomes the initial hypothesis</strong>, so it would be [Rainy, Cold, Normal].",
+                    hint: "Remember how the algorithm starts"
+                },
+                {
+                    type: "example",
+                    question: "Given hypothesis [Sunny, ?, Normal] and new <span class='positive-example'>positive example [Sunny, Warm, High]</span>, what's the result?",
+                    options: [
+                        "[Sunny, ?, ?]",
+                        "[Sunny, Warm, High]",
+                        "[Sunny, Warm, Normal]",
+                        "No change (conflict)"
+                    ],
+                    correct: 0,
+                    explanation: "There's <strong>no change</strong> because the third attribute conflicts (Normal vs High) and Find-S can't handle this inconsistency.",
+                    hint: "Find-S can't handle inconsistent positive examples"
+                },
+                {
+                    type: "concept",
+                    question: "Why does Find-S ignore negative examples?",
+                    options: [
+                        "Because they don't provide information about the target concept",
+                        "Because the algorithm assumes no negative examples exist",
+                        "Because they would make the hypothesis too general",
+                        "Because they're already handled by the positive examples"
+                    ],
+                    correct: 0,
+                    explanation: "Negative examples are ignored because they <strong>don't provide information</strong> about what the target concept is, only what it isn't.",
+                    hint: "Think about what information negative examples provide"
+                }
+            ],
+            3: [
+                {
+                    type: "concept",
+                    question: "What is the main reason Find-S might not find the correct hypothesis?",
+                    options: [
+                        "It doesn't consider all possible hypotheses",
+                        "It gets stuck in local minima",
+                        "It requires gradient descent",
+                        "It's too slow for large datasets"
+                    ],
+                    correct: 0,
+                    explanation: "Find-S <strong>doesn't consider all possible hypotheses</strong> - it just finds one consistent hypothesis without any guarantee it's the correct one.",
+                    hint: "Think about the algorithm's search strategy"
+                },
+                {
+                    type: "example",
+                    question: "Given examples: <span class='positive-example'>[Sunny, Warm, Normal] (pos)</span>, <span class='negative-example'>[Rainy, Cold, High] (neg)</span>, <span class='positive-example'>[Sunny, Warm, High] (pos)</span>, what's the final hypothesis?",
+                    options: [
+                        "[Sunny, Warm, ?]",
+                        "[Sunny, ?, ?]",
+                        "[?, Warm, ?]",
+                        "[Sunny, Warm, High]"
+                    ],
+                    correct: 0,
+                    explanation: "The final hypothesis is <strong>[Sunny, Warm, ?]</strong> - ignoring the negative example and generalizing the third attribute for the second positive.",
+                    hint: "Track each positive example in order, ignoring negatives"
+                },
+                {
+                    type: "edge-case",
+                    question: "What happens if the first training example is <span class='negative-example'>negative</span>?",
+                    options: [
+                        "The hypothesis remains most specific",
+                        "The algorithm skips it and waits for first positive",
+                        "It becomes most general",
+                        "The algorithm terminates with error"
+                    ],
+                    correct: 1,
+                    explanation: "Find-S <strong>skips negative examples</strong> until it finds the first positive example to initialize the hypothesis.",
+                    hint: "Remember how the algorithm initializes"
+                },
+                {
+                    type: "properties",
+                    question: "Which property is NOT true about Find-S?",
+                    options: [
+                        "It's guaranteed to find a consistent hypothesis if one exists",
+                        "It always finds the most specific hypothesis",
+                        "It can handle noisy training data",
+                        "It's deterministic"
+                    ],
+                    correct: 2,
+                    explanation: "Find-S <strong>cannot handle noisy training data</strong> as it assumes all examples are correctly labeled.",
+                    hint: "Think about the algorithm's assumptions"
+                },
+                {
+                    type: "scenario",
+                    question: "If given inconsistent <span class='positive-example'>positive examples</span> (e.g., same attributes, different labels), what happens?",
+                    options: [
+                        "The algorithm finds a hypothesis that matches some examples",
+                        "The hypothesis becomes maximally general",
+                        "The algorithm gets stuck with an inconsistent hypothesis",
+                        "It averages the conflicting examples"
+                    ],
+                    correct: 2,
+                    explanation: "Find-S <strong>gets stuck with an inconsistent hypothesis</strong> when given conflicting positive examples, as it can't handle noise.",
+                    hint: "The algorithm has no mechanism for handling noise"
+                },
+                {
+                    type: "tracking",
+                    question: "Given these examples: <span class='positive-example'>[Sunny, Warm, Normal] (pos)</span>, <span class='negative-example'>[Rainy, Cold, High] (neg)</span>, <span class='positive-example'>[Sunny, Cold, Normal] (pos)</span>, what's the final hypothesis?",
+                    options: [
+                        "[Sunny, ?, Normal]",
+                        "[Sunny, Warm, Normal]",
+                        "[?, ?, Normal]",
+                        "[Sunny, Cold, Normal]"
+                    ],
+                    correct: 0,
+                    explanation: "The final hypothesis is <strong>[Sunny, ?, Normal]</strong> - generalizing the second attribute to accommodate both positive examples.",
+                    hint: "Track how each positive example affects the hypothesis"
+                },
+                {
+                    type: "limitations",
+                    question: "Why is Find-S considered a 'greedy' algorithm?",
+                    options: [
+                        "It always chooses the immediate best option without backtracking",
+                        "It requires significant computational resources",
+                        "It tries to maximize the number of covered examples",
+                        "It minimizes the hypothesis space"
+                    ],
+                    correct: 0,
+                    explanation: "Find-S is greedy because it <strong>makes locally optimal choices</strong> (most specific hypothesis at each step) without considering global optimality.",
+                    hint: "Think about the algorithm's decision-making process"
+                },
+                {
+                    type: "advanced",
+                    question: "How could you modify Find-S to handle noisy data?",
+                    options: [
+                        "By allowing some attributes to be ignored",
+                        "By considering both positive and negative examples",
+                        "By using a voting mechanism for conflicting examples",
+                        "All of the above"
+                    ],
+                    correct: 3,
+                    explanation: "To handle noise, you'd need modifications like <strong>allowing ignored attributes, considering negatives, or voting mechanisms</strong> - none of which are in basic Find-S.",
+                    hint: "Think about ways to make the algorithm more robust"
+                }
+            ],
+            4: [
+                {
+                    type: "timed",
+                    question: "Given these examples in order: <span class='positive-example'>[Sunny, Warm, Normal, Strong] (pos)</span>, <span class='negative-example'>[Rainy, Cold, High, Weak] (neg)</span>, <span class='positive-example'>[Sunny, Warm, High, Strong] (pos)</span>, what's the final hypothesis?",
+                    options: [
+                        "[Sunny, Warm, ?, Strong]",
+                        "[Sunny, ?, ?, Strong]",
+                        "[Sunny, Warm, ?, ?]",
+                        "[Sunny, Warm, High, Strong]"
+                    ],
+                    correct: 0,
+                    explanation: "Final hypothesis is <strong>[Sunny, Warm, ?, Strong]</strong> - generalizing only the third attribute to accommodate both positives.",
+                    hint: "Track each positive example's effect"
+                },
+                {
+                    type: "timed",
+                    question: "If the initial hypothesis is [Φ, Φ, Φ] and first <span class='positive-example'>positive is [Rainy, Cold, High]</span>, what's the next hypothesis after seeing <span class='positive-example'>[Sunny, Warm, Normal] (pos)</span>?",
+                    options: [
+                        "[?, ?, ?]",
+                        "No change (conflict)",
+                        "[Rainy, Cold, High]",
+                        "[?, ?, ?]"
+                    ],
+                    correct: 2,
+                    explanation: "<strong>[Rainy, Cold, High]</strong> because the positive examples will be replaced with the initial hypothesis .",
+                    hint: "The examples have no attributes in common"
+                },
+                {
+                    type: "timed",
+                    question: "Given: <span class='positive-example'>[Sunny, Warm, Normal] (pos)</span>, <span class='negative-example'>[Rainy, Cold, High] (neg)</span>, <span class='positive-example'>[Sunny, Cold, Normal] (pos)</span>, <span class='positive-example'>[Sunny, Warm, High] (pos)</span>, what's the final hypothesis?",
+                    options: [
+                        "[Sunny, ?, ?]",
+                        "[Sunny, Warm, ?]",
+                        "[Sunny, ?, Normal]",
+                        "[Sunny, Cold, ?]"
+                    ],
+                    correct: 0,
+                    explanation: "Final hypothesis is <strong>[Sunny, ?, ?]</strong> as it's the most specific that covers all positive examples.",
+                    hint: "Find the most specific hypothesis covering all positives"
+                },
+                {
+                    type: "timed",
+                    question: "What's the minimum number of <span class='positive-example'>positive examples</span> needed for Find-S to reach [?, ?, ?]?",
+                    options: [
+                        "1",
+                        "2",
+                        "3",
+                        "Impossible to reach"
+                    ],
+                    correct: 1,
+                    explanation: "Just <strong>two positive examples</strong> with no common attributes will force [?, ?, ?] (e.g., [Sunny, Warm, Normal] and [Rainy, Cold, High]).",
+                    hint: "Think about completely different examples"
+                },
+                {
+                    type: "timed",
+                    question: "Given: <span class='positive-example'>[Sunny, Warm, Normal] (pos)</span>, <span class='positive-example'>[Sunny, Warm, High] (pos)</span>, what's the hypothesis?",
+                    options: [
+                        "[Sunny, Warm, ?]",
+                        "[Sunny, ?, ?]",
+                        "[?, Warm, ?]",
+                        "[Sunny, Warm, Normal]"
+                    ],
+                    correct: 0,
+                    explanation: "Hypothesis is <strong>[Sunny, Warm, ?]</strong> - generalizing only the attribute that differs (third one).",
+                    hint: "Generalize only the differing attribute"
+                },
+                {
+                    type: "timed",
+                    question: "If all examples are <span class='negative-example'>negative</span>, what does Find-S return?",
+                    options: [
+                        "[Φ, Φ, Φ]",
+                        "[?, ?, ?]",
+                        "An error message",
+                        "A random hypothesis"
+                    ],
+                    correct: 0,
+                    explanation: "With no positive examples, Find-S returns <strong>[Φ, Φ, Φ]</strong> (most specific, covers nothing).",
+                    hint: "No positives means no generalization"
+                },
+                {
+                    type: "timed",
+                    question: "Given: <span class='positive-example'>[Sunny, Warm, Normal] (pos)</span>, <span class='positive-example'>[Rainy, Cold, High] (pos)</span>, what's the hypothesis?",
+                    options: [
+                        "[?, ?, ?]",
+                        "[Sunny, Warm, Normal]",
+                        "[Rainy, Cold, High]",
+                        "[?, ?, ?]"
+                    ],
+                    correct: 0,
+                    explanation: "Hypothesis becomes <strong>[?, ?, ?]</strong> as the examples share no common attributes.",
+                    hint: "Completely different examples force full generalization"
+                },
+                {
+                    type: "timed",
+                    question: "What's the hypothesis after: <span class='positive-example'>[Sunny, Warm, Normal] (pos)</span>, <span class='positive-example'>[Sunny, Warm, Normal] (pos)</span>?",
+                    options: [
+                        "[Sunny, Warm, Normal]",
+                        "[Sunny, ?, ?]",
+                        "[?, Warm, ?]",
+                        "[?, ?, Normal]"
+                    ],
+                    correct: 0,
+                    explanation: "The hypothesis remains <strong>[Sunny, Warm, Normal]</strong> as identical examples don't require generalization.",
+                    hint: "Identical examples don't change the hypothesis"
+                },
+                {
+                    type: "timed",
+                    question: "After <span class='positive-example'>[Sunny, Warm, Normal] (pos)</span>, <span class='positive-example'>[Sunny, Cold, Normal] (pos)</span>, what's the hypothesis?",
+                    options: [
+                        "[Sunny, ?, Normal]",
+                        "[?, ?, Normal]",
+                        "[Sunny, Warm, Normal]",
+                        "[Sunny, Cold, Normal]"
+                    ],
+                    correct: 0,
+                    explanation: "Hypothesis becomes <strong>[Sunny, ?, Normal]</strong> - generalizing the differing attribute (second one).",
+                    hint: "Generalize only the attribute that differs"
+                },
+                {
+                    type: "timed",
+                    question: "Given: <span class='positive-example'>[Sunny, Warm, Normal] (pos)</span>, <span class='negative-example'>[Sunny, Warm, High] (neg)</span>, <span class='positive-example'>[Sunny, Warm, High] (pos)</span>, what's the final hypothesis?",
+                    options: [
+                        "[Sunny, Warm, ?]",
+                        "[Sunny, Warm, High]",
+                        "[Sunny, ?, ?]",
+                        "[?, Warm, ?]"
+                    ],
+                    correct: 0,
+                    explanation: "Final hypothesis is <strong>[Sunny, Warm, ?]</strong> - ignoring the negative and generalizing for the second positive.",
+                    hint: "Remember to ignore negative examples"
+                }
+            ]
+        }
+
+        // ======================
+        // Quiz State
+        // ======================
+        let currentLevel = 1;
+        let unlockedLevels = [1];
+        let levelScores = {1: 0, 2: 0, 3: 0, 4: 0};
+        let questions = [];
+        let currentQuestion = 0;
+        let selectedOption = null;
+        let score = 0;
+        let userAnswers = [];
+        let streak = 0;
+        let timer = null;
+        let timeLeft = 60;
+
+        // ======================
+        // DOM Elements
+        // ======================
+        const questionEl = document.getElementById('question');
+        const optionsEl = document.getElementById('options');
+        const feedbackEl = document.getElementById('feedback');
+        const progressEl = document.getElementById('progress');
+        const scoreDisplayEl = document.getElementById('score-display');
+        const nextBtn = document.getElementById('next-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        const submitBtn = document.getElementById('submit-btn');
+        const hintBtn = document.getElementById('hint-btn');
+        const quizContentEl = document.getElementById('quiz-content');
+        const resultContainerEl = document.getElementById('result-container');
+        const finalScoreEl = document.getElementById('final-score');
+        const resultMessageEl = document.getElementById('result-message');
+        const unlockMessageEl = document.getElementById('unlock-message');
+        const retryBtn = document.getElementById('retry-btn');
+        const levelSelectBtn = document.getElementById('level-select-btn');
+        const levelSelectionEl = document.getElementById('level-selection');
+        const streakContainerEl = document.getElementById('streak-container');
+        const streakCountEl = document.querySelector('.streak-count');
+        const timerContainerEl = document.getElementById('timer-container');
+        const timerEl = document.querySelector('.timer');
+        const levelTitleEl = document.getElementById('level-title');
+
+        // ======================
+        // Quiz Functions
+        // ======================
+        function loadLevelSelection() {
+            levelSelectionEl.style.display = 'block';
+            quizContentEl.style.display = 'none';
+            resultContainerEl.style.display = 'none';
+            streakContainerEl.style.display = 'none';
+            timerContainerEl.style.display = 'none';
+            
+            // Update level cards
+            document.querySelectorAll('.level-card').forEach(card => {
+                const level = parseInt(card.dataset.level);
+                if (unlockedLevels.includes(level)) {
+                    card.classList.remove('locked');
+                    card.classList.add('unlocked');
+                    const badge = card.querySelector('.badge');
+                    if (badge) {
+                        badge.textContent = 'Unlocked';
+                        badge.classList.remove('locked-badge');
+                    }
+                    card.querySelector('.level-description').style.display = 'block';
+                } else {
+                    card.classList.add('locked');
+                    card.classList.remove('unlocked');
+                    const badge = card.querySelector('.badge');
+                    if (badge) {
+                        badge.textContent = 'Locked';
+                        badge.classList.add('locked-badge');
+                    }
+                    card.querySelector('.level-description').style.display = 'none';
+                }
+                
+                // Show high score if available
+                if (levelScores[level] > 0) {
+                    const scoreBadge = document.createElement('span');
+                    scoreBadge.className = 'badge';
+                    scoreBadge.style.marginLeft = '0.5rem';
+                    scoreBadge.style.background = '#4a90e2';
+                    scoreBadge.textContent = `High: ${levelScores[level]}%`;
+                    card.querySelector('h3').appendChild(scoreBadge);
+                }
+            });
+        }
+
+        function startLevel(level) {
+            if (!unlockedLevels.includes(level)) return;
+            
+            currentLevel = level;
+            questions = [...levelQuestions[level]];
+            currentQuestion = 0;
+            score = 0;
+            userAnswers = [];
+            streak = 0;
+            
+            levelSelectionEl.style.display = 'none';
+            quizContentEl.style.display = 'block';
+            resultContainerEl.style.display = 'none';
+            
+            // Set level title
+            const levelTitles = {
+                1: "Beginner Level",
+                2: "Intermediate Level",
+                3: "Advanced Level",
+                4: "Expert Challenge"
+            };
+            levelTitleEl.innerHTML = `<i class="fas fa-${level === 4 ? 'stopwatch' : 'question-circle'} quiz-icon"></i> ${levelTitles[level]}`;
+            
+            // Show streak counter
+            streakContainerEl.style.display = 'flex';
+            updateStreak();
+            
+            // Start timer for expert level
+            if (level === 4) {
+                timeLeft = 60;
+                timerContainerEl.style.display = 'flex';
+                timerEl.textContent = timeLeft;
+                timer = setInterval(() => {
+                    timeLeft--;
+                    timerEl.textContent = timeLeft;
+                    if (timeLeft <= 0) {
+                        clearInterval(timer);
+                        showResults();
+                    }
+                }, 1000);
+            } else {
+                timerContainerEl.style.display = 'none';
+                if (timer) clearInterval(timer);
+            }
+            
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const question = questions[currentQuestion];
+            questionEl.innerHTML = question.question;
+            optionsEl.innerHTML = '';
+            
+            selectedOption = null;
+            
+            question.options.forEach((option, index) => {
+                const optionEl = document.createElement('div');
+                optionEl.classList.add('option');
+                optionEl.innerHTML = option;
+                optionEl.dataset.index = index;
+                optionEl.addEventListener('click', selectOption);
+                optionsEl.appendChild(optionEl);
+            });
+            
+            progressEl.style.width = `${((currentQuestion + 1) / questions.length) * 100}%`;
+            scoreDisplayEl.textContent = `Question ${currentQuestion + 1} of ${questions.length}`;
+            
+            prevBtn.disabled = currentQuestion === 0;
+            nextBtn.textContent = currentQuestion === questions.length - 1 ? 'Review Answers' : 'Next';
+            submitBtn.style.display = currentQuestion === questions.length - 1 ? 'block' : 'none';
+            nextBtn.style.display = currentQuestion === questions.length - 1 ? 'none' : 'block';
+            
+            feedbackEl.style.display = 'none';
+            feedbackEl.className = 'feedback';
+            feedbackEl.innerHTML = '';
+            
+            // Restore selected answer if already answered
+            if (userAnswers[currentQuestion] !== undefined) {
+                document.querySelectorAll('.option')[userAnswers[currentQuestion]].classList.add('selected');
+                selectedOption = userAnswers[currentQuestion];
+                showFeedback();
+            }
+        }
+
+        function selectOption(e) {
+            document.querySelectorAll('.option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            e.target.classList.add('selected');
+            selectedOption = parseInt(e.target.dataset.index);
+            
+            if (userAnswers[currentQuestion] !== undefined) {
+                showFeedback();
+            }
+        }
+
+        function showHint() {
+            if (selectedOption !== null) return;
+            
+            const question = questions[currentQuestion];
+            alert(`Hint: ${question.hint}`);
+        }
+
+        function showFeedback() {
+            const question = questions[currentQuestion];
+            const isCorrect = selectedOption === question.correct;
+            
+            feedbackEl.className = `feedback ${isCorrect ? 'correct-feedback' : 'wrong-feedback'}`;
+            feedbackEl.innerHTML = `
+                <p><strong>${isCorrect ? 'Correct!' : 'Incorrect'}</strong></p>
+                <p>${question.explanation}</p>
+            `;
+            feedbackEl.style.display = 'block';
+            
+            document.querySelectorAll('.option').forEach((opt, index) => {
+                opt.classList.remove('correct', 'wrong');
+                if (index === question.correct) {
+                    opt.classList.add('correct');
+                } else if (index === selectedOption && !isCorrect) {
+                    opt.classList.add('wrong');
+                }
+            });
+            
+            // Update streak
+            if (isCorrect) {
+                streak++;
+            } else {
+                streak = 0;
+            }
+            updateStreak();
+        }
+
+        function updateStreak() {
+            streakCountEl.textContent = streak;
+            if (streak >= 3) {
+                streakContainerEl.style.background = 'linear-gradient(90deg, #ff8a00, #ff0058)';
+            } else {
+                streakContainerEl.style.background = '';
+            }
+        }
+
+        function nextQuestion() {
+            if (selectedOption === null && userAnswers[currentQuestion] === undefined) {
+                alert('Please select an answer!');
+                return;
+            }
+            
+            if (userAnswers[currentQuestion] === undefined) {
+                userAnswers[currentQuestion] = selectedOption;
+                if (selectedOption === questions[currentQuestion].correct) {
+                    score++;
+                    createConfetti();
+                }
+                showFeedback();
+            }
+            
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                loadQuestion();
+                
+                if (userAnswers[currentQuestion] !== undefined) {
+                    document.querySelectorAll('.option')[userAnswers[currentQuestion]].classList.add('selected');
+                    selectedOption = userAnswers[currentQuestion];
+                    showFeedback();
+                }
+            } else {
+                showResults();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                loadQuestion();
+                
+                if (userAnswers[currentQuestion] !== undefined) {
+                    document.querySelectorAll('.option')[userAnswers[currentQuestion]].classList.add('selected');
+                    selectedOption = userAnswers[currentQuestion];
+                    showFeedback();
+                }
+            }
+        }
+
+        function showResults() {
+            if (timer) clearInterval(timer);
+            
+            quizContentEl.style.display = 'none';
+            resultContainerEl.style.display = 'block';
+            
+            const percentage = Math.round((score / questions.length) * 100);
+            finalScoreEl.textContent = `${score}/${questions.length} (${percentage}%)`;
+            
+            // Save high score
+            levelScores[currentLevel] = Math.max(levelScores[currentLevel], percentage);
+            
+            // Set result message
+            if (percentage === 100) {
+                resultMessageEl.innerHTML = `<i class="fas fa-trophy"></i> Perfect! You've mastered this level!`;
+            } else if (percentage >= 80) {
+                resultMessageEl.innerHTML = `<i class="fas fa-star"></i> Excellent work! You understand this material well.`;
+            } else if (percentage >= 60) {
+                resultMessageEl.innerHTML = `<i class="fas fa-thumbs-up"></i> Good job! Review the questions you missed to improve.`;
+            } else {
+                resultMessageEl.innerHTML = `<i class="fas fa-book"></i> Keep practicing! Review the Find-S algorithm concepts and try again.`;
+            }
+            
+            // Check if unlocked next level
+            if (percentage >= 70 && currentLevel < 4 && !unlockedLevels.includes(currentLevel + 1)) {
+                unlockedLevels.push(currentLevel + 1);
+                unlockMessageEl.innerHTML = `
+                    <div style="background: rgba(39, 174, 96, 0.2); padding: 1rem; border-radius: 8px; border-left: 4px solid var(--secondary-color);">
+                        <p><i class="fas fa-lock-open"></i> <strong>Level ${currentLevel + 1} Unlocked!</strong></p>
+                        <p>You've scored ${percentage}% on this level and unlocked the next challenge!</p>
+                    </div>
+                `;
+                createConfetti(true);
+            } else {
+                unlockMessageEl.innerHTML = '';
+            }
+        }
+
+        function createConfetti(isLevelUnlock = false) {
+            const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
+            const count = isLevelUnlock ? 100 : 30;
+            
+            for (let i = 0; i < count; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.left = Math.random() * window.innerWidth + 'px';
+                document.body.appendChild(confetti);
+                
+                const animationDuration = Math.random() * 3 + 2;
+                
+                confetti.animate([
+                    { top: '-10px', transform: 'rotate(0deg)' },
+                    { top: window.innerHeight + 'px', transform: 'rotate(360deg)' }
+                ], {
+                    duration: animationDuration * 1000,
+                    easing: 'cubic-bezier(0.1, 0.8, 0.9, 1)'
+                });
+                
+                setTimeout(() => {
+                    confetti.remove();
+                }, animationDuration * 1000);
+            }
+        }
+
+        // ======================
+        // Event Listeners
+        // ======================
+        document.querySelectorAll('.level-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const level = parseInt(btn.dataset.level);
+                startLevel(level);
+            });
+        });
+
+        nextBtn.addEventListener('click', nextQuestion);
+        prevBtn.addEventListener('click', prevQuestion);
+        submitBtn.addEventListener('click', nextQuestion);
+        hintBtn.addEventListener('click', showHint);
+        retryBtn.addEventListener('click', () => startLevel(currentLevel));
+        levelSelectBtn.addEventListener('click', loadLevelSelection);
+
+        // Initialize
+        loadLevelSelection();
+    </script>
+</body>
+</html>

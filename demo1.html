@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Find-S Animal Classifier</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #4a90e2;
+      --secondary: #64f0ff;
+      --accent: #ff6b6b;
+      --bg-dark: #0a192f;
+      --card-bg: rgba(10, 25, 47, 0.8);
+      --text-light: #e6f1ff;
+      --text-muted: #8892b0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-light);
+      margin: 0;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1, h2, h3 {
+      font-family: 'Press Start 2P', cursive;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      text-align: center;
+      margin-bottom: 1rem;
+      text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .game-container {
+      display: flex;
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+
+    .panel {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 1.5rem;
+      border: 2px solid rgba(74, 144, 226, 0.3);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .dataset-panel {
+      flex: 1;
+    }
+
+    .visualization-panel {
+      flex: 1;
+    }
+
+    .input-panel {
+      margin-top: 2rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: 0.9rem;
+    }
+
+    th, td {
+      padding: 0.8rem;
+      text-align: left;
+      border-bottom: 1px solid rgba(74, 144, 226, 0.2);
+    }
+
+    th {
+      background: rgba(74, 144, 226, 0.1);
+      color: var(--secondary);
+    }
+
+    tr:hover {
+      background: rgba(100, 240, 255, 0.05);
+    }
+
+    .positive {
+      background: rgba(100, 255, 100, 0.1);
+      border-left: 3px solid #64ff64;
+    }
+
+    .negative {
+      background: rgba(255, 100, 100, 0.1);
+      border-left: 3px solid #ff6464;
+    }
+
+    .processing {
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0% { background-color: rgba(74, 144, 226, 0.1); }
+      50% { background-color: rgba(74, 144, 226, 0.3); }
+      100% { background-color: rgba(74, 144, 226, 0.1); }
+    }
+
+    .hypothesis-display {
+      background: rgba(23, 42, 69, 0.6);
+      padding: 1.5rem;
+      border-radius: 12px;
+      margin: 1.5rem 0;
+      border: 1px solid var(--primary);
+      font-family: monospace;
+      font-size: 1.2rem;
+      min-height: 100px;
+      position: relative;
+    }
+
+    .hypothesis-item {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      margin: 0.3rem;
+      border-radius: 8px;
+      background: rgba(74, 144, 226, 0.2);
+      transition: all 0.3s ease;
+    }
+
+    .hypothesis-item.changed {
+      animation: highlight 0.8s ease;
+      background: rgba(100, 240, 255, 0.4);
+    }
+
+    @keyframes highlight {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); background: var(--accent); }
+      100% { transform: scale(1); }
+    }
+
+    .controls {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    button {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: var(--bg-dark);
+      border: none;
+      padding: 0.8rem 1.5rem;
+      border-radius: 50px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: 'Press Start 2P', cursive;
+      font-size: 0.7rem;
+      flex: 1;
+    }
+
+    button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 16px rgba(74, 144, 226, 0.4);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    .progress-container {
+      margin-top: 1.5rem;
+    }
+
+    .progress-bar {
+      height: 10px;
+      background: rgba(74, 144, 226, 0.2);
+      border-radius: 5px;
+      overflow: hidden;
+    }
+
+    .progress {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      width: 0%;
+      transition: width 0.5s ease;
+    }
+
+    .feedback {
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: 8px;
+      background: rgba(100, 240, 255, 0.1);
+      border-left: 3px solid var(--secondary);
+      display: none;
+    }
+
+    .feature-key {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .feature {
+      background: rgba(74, 144, 226, 0.1);
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+    }
+
+    .sound-toggle {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: none;
+      border: none;
+      color: var(--text-light);
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    .confetti {
+      position: fixed;
+      width: 10px;
+      height: 10px;
+      background-color: var(--accent);
+      opacity: 0;
+      z-index: 100;
+    }
+
+    .input-form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    label {
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    select, input {
+      padding: 0.8rem;
+      border-radius: 8px;
+      border: 1px solid rgba(74, 144, 226, 0.5);
+      background: rgba(23, 42, 69, 0.8);
+      color: var(--text-light);
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .game-container {
+        flex-direction: column;
+      }
+      
+      h1 {
+        font-size: 1.8rem;
+      }
+      
+      .input-form {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <button id="soundToggle" class="sound-toggle" title="Toggle sound">
+      <i class="fas fa-volume-up"></i>
+    </button>
+    
+    <h1>ANIMAL CLASSIFIER</h1>
+    <p>Watch how the Find-S algorithm learns to identify birds from their features!</p>
+    
+    <div class="game-container">
+      <div class="dataset-panel panel">
+        <h2>TRAINING DATA</h2>
+        <table id="datasetTable">
+          <thead>
+            <tr>
+              <th>Animal</th>
+              <th>Body Covering</th>
+              <th>Warm Blooded</th>
+              <th>Lays Eggs</th>
+              <th>Can Fly</th>
+              <th>Class</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Filled by JavaScript -->
+          </tbody>
+        </table>
+        
+        <div class="feature-key">
+          <div class="feature"><strong>Body Covering:</strong> Fur, Feathers, Scales</div>
+          <div class="feature"><strong>Warm Blooded:</strong> Yes/No</div>
+          <div class="feature"><strong>Lays Eggs:</strong> Yes/No</div>
+          <div class="feature"><strong>Can Fly:</strong> Yes/No</div>
+        </div>
+      </div>
+      
+      <div class="visualization-panel panel">
+        <h2>ALGORITHM VISUALIZER</h2>
+        
+        <div class="hypothesis-display">
+          <p>Current Hypothesis:</p>
+          <div id="hypothesisContainer">
+            <!-- Filled by JavaScript -->
+          </div>
+        </div>
+        
+        <div class="feedback" id="feedback">
+          <!-- Filled by JavaScript -->
+        </div>
+        
+        <div class="controls">
+          <button id="nextBtn">NEXT STEP <i class="fas fa-forward"></i></button>
+          <button id="autoBtn">AUTO RUN <i class="fas fa-bolt"></i></button>
+          <button id="resetBtn">RESET <i class="fas fa-undo"></i></button>
+        </div>
+        
+        <div class="progress-container">
+          <p>Learning Progress:</p>
+          <div class="progress-bar">
+            <div class="progress" id="progressBar"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="input-panel panel">
+      <h2>ADD YOUR OWN EXAMPLE</h2>
+      <div class="input-form" id="inputForm">
+        <div class="input-group">
+          <label for="animalName">Animal Name</label>
+          <input type="text" id="animalName" placeholder="e.g. Owl">
+        </div>
+        
+        <div class="input-group">
+          <label for="bodyCovering">Body Covering</label>
+          <select id="bodyCovering">
+            <option value="Fur">Fur</option>
+            <option value="Feathers">Feathers</option>
+            <option value="Scales">Scales</option>
+          </select>
+        </div>
+        
+        <div class="input-group">
+          <label for="warmBlooded">Warm Blooded</label>
+          <select id="warmBlooded">
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+          </select>
+        </div>
+        
+        <div class="input-group">
+          <label for="laysEggs">Lays Eggs</label>
+          <select id="laysEggs">
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+          </select>
+        </div>
+        
+        <div class="input-group">
+          <label for="canFly">Can Fly</label>
+          <select id="canFly">
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+          </select>
+        </div>
+        
+        <div class="input-group">
+          <label for="animalClass">Class</label>
+          <select id="animalClass">
+            <option value="Bird">Bird</option>
+            <option value="Mammal">Mammal</option>
+            <option value="Reptile">Reptile</option>
+            <option value="Fish">Fish</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="form-actions">
+        <button id="addExampleBtn" class="primary">
+          <i class="fas fa-plus"></i> ADD EXAMPLE
+        </button>
+        <button id="clearFormBtn">
+          <i class="fas fa-trash"></i> CLEAR
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <audio id="positiveSound" src="https://assets.mixkit.co/sfx/preview/mixkit-positive-interface-beep-221.mp3"></audio>
+  <audio id="generalizeSound" src="https://assets.mixkit.co/sfx/preview/mixkit-unlock-game-notification-253.mp3"></audio>
+  <audio id="completeSound" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3"></audio>
+  <audio id="addSound" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3"></audio>
+
+  <script>
+    // Sound effects
+    const sounds = {
+      positive: document.getElementById('positiveSound'),
+      generalize: document.getElementById('generalizeSound'),
+      complete: document.getElementById('completeSound'),
+      add: document.getElementById('addSound')
+    };
+    let soundEnabled = true;
+
+    // Toggle sound
+    document.getElementById('soundToggle').addEventListener('click', () => {
+      soundEnabled = !soundEnabled;
+      document.getElementById('soundToggle').innerHTML = 
+        soundEnabled ? '<i class="fas fa-volume-up"></i>' : '<i class="fas fa-volume-mute"></i>';
+    });
+
+    // Dataset - Expanded with more examples
+    let animals = [
+      { name: "Eagle", features: ["Feathers", "Yes", "Yes", "Yes"], class: "Bird" },
+      { name: "Penguin", features: ["Feathers", "Yes", "Yes", "No"], class: "Bird" },
+      { name: "Ostrich", features: ["Feathers", "Yes", "Yes", "No"], class: "Bird" },
+      { name: "Bat", features: ["Fur", "Yes", "No", "Yes"], class: "Mammal" },
+      { name: "Dolphin", features: ["Fur", "Yes", "No", "No"], class: "Mammal" },
+      { name: "Kangaroo", features: ["Fur", "Yes", "No", "No"], class: "Mammal" },
+      { name: "Lizard", features: ["Scales", "No", "Yes", "No"], class: "Reptile" },
+      { name: "Turtle", features: ["Scales", "No", "Yes", "No"], class: "Reptile" },
+      { name: "Salmon", features: ["Scales", "No", "Yes", "No"], class: "Fish" },
+      { name: "Shark", features: ["Scales", "No", "No", "No"], class: "Fish" }
+    ];
+
+    // Initialize
+    let currentExample = 0;
+    let currentHypothesis = Array(4).fill('∅');
+    const featureNames = ["Body Covering", "Warm Blooded", "Lays Eggs", "Can Fly"];
+    let autoRunInterval = null;
+
+    // DOM Elements
+    const datasetTable = document.getElementById('datasetTable').getElementsByTagName('tbody')[0];
+    const hypothesisContainer = document.getElementById('hypothesisContainer');
+    const feedbackDiv = document.getElementById('feedback');
+    const nextBtn = document.getElementById('nextBtn');
+    const autoBtn = document.getElementById('autoBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const progressBar = document.getElementById('progressBar');
+    const addExampleBtn = document.getElementById('addExampleBtn');
+    const clearFormBtn = document.getElementById('clearFormBtn');
+
+    // Initialize table
+    function renderDataset() {
+      datasetTable.innerHTML = '';
+      animals.forEach((animal, index) => {
+        const row = datasetTable.insertRow();
+        row.className = index < currentExample ? 'processed' : '';
+        if (animal.class === "Bird") row.classList.add('positive');
+        else row.classList.add('negative');
+        
+        row.insertCell(0).textContent = animal.name;
+        animal.features.forEach((feat, i) => {
+          row.insertCell(i+1).textContent = feat;
+        });
+        row.insertCell(5).textContent = animal.class;
+        
+        // Add delete button
+        const actionCell = row.insertCell(6);
+        const deleteBtn = document.createElement('button');
+        deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+        deleteBtn.className = 'delete-btn';
+        deleteBtn.onclick = () => deleteExample(index);
+        actionCell.appendChild(deleteBtn);
+      });
+    }
+
+    // Delete example
+    function deleteExample(index) {
+      animals.splice(index, 1);
+      if (currentExample > index) currentExample--;
+      renderDataset();
+      updateProgress();
+    }
+
+    // Render hypothesis
+    function renderHypothesis() {
+      hypothesisContainer.innerHTML = '';
+      currentHypothesis.forEach((val, i) => {
+        const span = document.createElement('span');
+        span.className = 'hypothesis-item';
+        span.id = `hyp-${i}`;
+        span.innerHTML = `<strong>${featureNames[i]}:</strong> ${val}`;
+        hypothesisContainer.appendChild(span);
+      });
+    }
+
+    // Highlight changed feature
+    function highlightChange(index) {
+      const elem = document.getElementById(`hyp-${index}`);
+      elem.classList.add('changed');
+      setTimeout(() => elem.classList.remove('changed'), 1000);
+    }
+
+    // Show feedback
+    function showFeedback(message) {
+      feedbackDiv.style.display = 'block';
+      feedbackDiv.innerHTML = message;
+    }
+
+    // Play sound
+    function playSound(type) {
+      if (soundEnabled) {
+        sounds[type].currentTime = 0;
+        sounds[type].play();
+      }
+    }
+
+    // Create confetti
+    function createConfetti() {
+      for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = Math.random() * 100 + 'vw';
+        confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+        confetti.style.width = Math.random() * 10 + 5 + 'px';
+        confetti.style.height = Math.random() * 10 + 5 + 'px';
+        document.body.appendChild(confetti);
+        
+        const animation = confetti.animate([
+          { top: '-10px', opacity: 1, transform: 'rotate(0deg)' },
+          { top: '100vh', opacity: 0, transform: 'rotate(360deg)' }
+        ], {
+          duration: Math.random() * 3000 + 2000,
+          easing: 'cubic-bezier(0.1, 0.8, 0.3, 1)'
+        });
+        
+        animation.onfinish = () => confetti.remove();
+      }
+    }
+
+    // Update progress bar
+    function updateProgress() {
+      progressBar.style.width = (currentExample / animals.length * 100) + '%';
+    }
+
+    // Process next example
+    function processNextExample() {
+      if (currentExample >= animals.length) {
+        showFeedback('🎉 All examples processed! Final hypothesis achieved!');
+        playSound('complete');
+        createConfetti();
+        nextBtn.disabled = true;
+        autoBtn.disabled = true;
+        return;
+      }
+
+      const animal = animals[currentExample];
+      let feedback = '';
+      
+      // Highlight current row
+      const rows = datasetTable.rows;
+      rows[currentExample].classList.add('processing');
+      setTimeout(() => rows[currentExample].classList.remove('processing'), 1000);
+
+      if (animal.class === "Bird") {
+        playSound('positive');
+        feedback = `<strong>Processing ${animal.name}:</strong> Positive example (Bird) - updating hypothesis...<br>`;
+        
+        let changed = false;
+        for (let i = 0; i < animal.features.length; i++) {
+          if (currentHypothesis[i] === '∅') {
+            currentHypothesis[i] = animal.features[i];
+            feedback += `- Initialized <strong>${featureNames[i]}</strong> to <strong>${animal.features[i]}</strong><br>`;
+            highlightChange(i);
+            changed = true;
+          } else if (currentHypothesis[i] !== animal.features[i] && currentHypothesis[i] !== '?') {
+            currentHypothesis[i] = '?';
+            feedback += `- Generalized <strong>${featureNames[i]}</strong> to <strong>?</strong> (not consistent)<br>`;
+            highlightChange(i);
+            playSound('generalize');
+            changed = true;
+          }
+        }
+        
+        if (!changed) {
+          feedback += 'No changes needed - hypothesis already matches this example';
+        }
+      } else {
+        feedback = `<strong>Processing ${animal.name}:</strong> Negative example (${animal.class}) - ignored by Find-S algorithm`;
+      }
+
+      showFeedback(feedback);
+      renderHypothesis();
+      currentExample++;
+      updateProgress();
+      
+      if (currentExample >= animals.length) {
+        nextBtn.disabled = true;
+        autoBtn.disabled = true;
+      }
+    }
+
+    // Auto-run through all examples
+    function autoRun() {
+      if (autoRunInterval) {
+        clearInterval(autoRunInterval);
+        autoRunInterval = null;
+        autoBtn.innerHTML = '<i class="fas fa-bolt"></i> AUTO RUN';
+        return;
+      }
+      
+      autoBtn.innerHTML = '<i class="fas fa-stop"></i> STOP';
+      autoRunInterval = setInterval(() => {
+        processNextExample();
+        if (currentExample >= animals.length) {
+          clearInterval(autoRunInterval);
+          autoRunInterval = null;
+          autoBtn.innerHTML = '<i class="fas fa-bolt"></i> AUTO RUN';
+        }
+      }, 2000);
+    }
+
+    // Reset everything
+    function reset() {
+      currentExample = 0;
+      currentHypothesis = Array(4).fill('∅');
+      renderDataset();
+      renderHypothesis();
+      feedbackDiv.style.display = 'none';
+      nextBtn.disabled = false;
+      autoBtn.disabled = false;
+      autoBtn.innerHTML = '<i class="fas fa-bolt"></i> AUTO RUN';
+      if (autoRunInterval) {
+        clearInterval(autoRunInterval);
+        autoRunInterval = null;
+      }
+      updateProgress();
+    }
+
+    // Add new example
+    function addExample() {
+      const name = document.getElementById('animalName').value.trim();
+      const bodyCovering = document.getElementById('bodyCovering').value;
+      const warmBlooded = document.getElementById('warmBlooded').value;
+      const laysEggs = document.getElementById('laysEggs').value;
+      const canFly = document.getElementById('canFly').value;
+      const animalClass = document.getElementById('animalClass').value;
+      
+      if (!name) {
+        alert("Please enter an animal name");
+        return;
+      }
+      
+      const newExample = {
+        name: name,
+        features: [bodyCovering, warmBlooded, laysEggs, canFly],
+        class: animalClass
+      };
+      
+      animals.push(newExample);
+      renderDataset();
+      playSound('add');
+      
+      // Clear form
+      document.getElementById('animalName').value = '';
+      document.getElementById('bodyCovering').value = "Fur";
+      document.getElementById('warmBlooded').value = "Yes";
+      document.getElementById('laysEggs').value = "Yes";
+      document.getElementById('canFly').value = "Yes";
+      document.getElementById('animalClass').value = "Bird";
+      
+      // If we've already processed all examples, reset to show new ones
+      if (currentExample >= animals.length - 1) {
+        nextBtn.disabled = false;
+        autoBtn.disabled = false;
+      }
+    }
+
+    // Clear form
+    function clearForm() {
+      document.getElementById('animalName').value = '';
+      document.getElementById('bodyCovering').value = "Fur";
+      document.getElementById('warmBlooded').value = "Yes";
+      document.getElementById('laysEggs').value = "Yes";
+      document.getElementById('canFly').value = "Yes";
+      document.getElementById('animalClass').value = "Bird";
+    }
+
+    // Event listeners
+    nextBtn.addEventListener('click', processNextExample);
+    autoBtn.addEventListener('click', autoRun);
+    resetBtn.addEventListener('click', reset);
+    addExampleBtn.addEventListener('click', addExample);
+    clearFormBtn.addEventListener('click', clearForm);
+
+    // Initialize
+    renderDataset();
+    renderHypothesis();
+    updateProgress();
+  </script>
+</body>
+</html>

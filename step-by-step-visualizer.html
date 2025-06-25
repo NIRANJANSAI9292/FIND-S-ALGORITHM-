@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find-S Algorithm - Step-by-Step Visualizer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --background-light: #f5f5f5;
+            --background-dark: #1e1e1e;
+            --text-light: #333;
+            --text-dark: #f5f5f5;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-light);
+            color: var(--text-light);
+            margin: 0;
+            padding: 0;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body.dark {
+            background-color: var(--background-dark);
+            color: var(--text-dark);
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: white;
+            color: black;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        body.dark .theme-toggle {
+            background: #333;
+            color: white;
+        }
+
+        .theme-toggle:hover {
+            background: #ddd;
+        }
+
+        body.dark .theme-toggle:hover {
+            background: #555;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .back-btn {
+            background-color: #95a5a6;
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 1rem;
+            transition: background-color 0.2s;
+        }
+
+        .back-btn:hover {
+            background-color: #7f8c8d;
+        }
+
+        .visualizer-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 2rem;
+            margin-top: 1rem;
+        }
+
+        body.dark .visualizer-container {
+            background: #2c2c2c;
+        }
+
+        h2 {
+            color: var(--primary-color);
+            margin-top: 0;
+        }
+
+        .dataset-panel {
+            margin-bottom: 2rem;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        body.dark th, body.dark td {
+            border-color: #444;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: 600;
+        }
+
+        body.dark th {
+            background-color: #333;
+        }
+
+        .active-example {
+            background-color: #e3f2fd !important;
+            font-weight: bold;
+        }
+
+        body.dark .active-example {
+            background-color: #2c3e50 !important;
+        }
+
+        .visualization-area {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .visualization-area {
+                flex-direction: column;
+            }
+        }
+
+        .hypothesis-display {
+            flex: 1;
+            background: #f5f5f5;
+            padding: 1.5rem;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 1.2rem;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        body.dark .hypothesis-display {
+            background: #333;
+        }
+
+        .hypothesis-display h3 {
+            margin-top: 0;
+            margin-bottom: 1rem;
+        }
+
+        #current-hypothesis {
+            font-size: 1.3rem;
+            margin: auto 0;
+            text-align: center;
+        }
+
+        .explanation-box {
+            flex: 2;
+            background: #f9f9f9;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        body.dark .explanation-box {
+            background: #333;
+            border-left-color: #4a90e2;
+        }
+
+        #step-explanation {
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .controls button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background: var(--primary-color);
+            color: white;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+
+        .controls button:hover {
+            background: #357abd;
+        }
+
+        .controls button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+
+        body.dark .controls button:disabled {
+            background: #555;
+        }
+
+        .positive {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .negative {
+            color: #e74c3c;
+        }
+
+        .attribute-change {
+            animation: highlight 1s;
+        }
+
+        @keyframes highlight {
+            0% { background-color: rgba(74, 144, 226, 0.5); }
+            100% { background-color: transparent; }
+        }
+
+        body.dark .attribute-change {
+            animation: highlight-dark 1s;
+        }
+
+        @keyframes highlight-dark {
+            0% { background-color: rgba(74, 144, 226, 0.3); }
+            100% { background-color: transparent; }
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()">
+        <i class="fas fa-moon"></i> Toggle Theme
+    </button>
+
+    <div class="container">
+        <button class="back-btn" onclick="window.location.href='index.html'">
+            <i class="fas fa-arrow-left"></i> Back to Home
+        </button>
+
+        <div class="visualizer-container">
+            <h2>Step-by-Step Find-S Visualizer</h2>
+            
+            <div class="dataset-panel">
+                <h3>Training Examples</h3>
+                <table id="training-data">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Outlook</th>
+                            <th>Temperature</th>
+                            <th>Humidity</th>
+                            <th>Wind</th>
+                            <th>EnjoySport</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Filled by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="visualization-area">
+                <div class="hypothesis-display">
+                    <h3>Current Hypothesis</h3>
+                    <div id="current-hypothesis">[Φ, Φ, Φ, Φ]</div>
+                </div>
+                
+                <div class="explanation-box">
+                    <h3>Algorithm Explanation</h3>
+                    <p id="step-explanation">Click "Next" to begin the visualization. The algorithm will process each example one at a time.</p>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button id="prev-btn" disabled>
+                    <i class="fas fa-arrow-left"></i> Previous
+                </button>
+                <button id="next-btn">
+                    Next <i class="fas fa-arrow-right"></i>
+                </button>
+                <button id="reset-btn">
+                    <i class="fas fa-redo"></i> Reset
+                </button>
+                <button id="auto-run-btn">
+                    <i class="fas fa-play"></i> Auto Run
+                </button>
+                <button id="speed-control">
+                    Speed: 1x
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Theme toggle
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+            const icon = document.querySelector('.theme-toggle i');
+            if (document.body.classList.contains('dark')) {
+                icon.classList.replace('fa-moon', 'fa-sun');
+            } else {
+                icon.classList.replace('fa-sun', 'fa-moon');
+            }
+        }
+
+        // Sample dataset
+        const trainingData = [
+            { outlook: 'Sunny', temp: 'Hot', humidity: 'High', wind: 'Weak', label: 'No' },
+            { outlook: 'Sunny', temp: 'Hot', humidity: 'High', wind: 'Strong', label: 'No' },
+            { outlook: 'Overcast', temp: 'Hot', humidity: 'High', wind: 'Weak', label: 'Yes' },
+            { outlook: 'Rainy', temp: 'Mild', humidity: 'High', wind: 'Weak', label: 'Yes' },
+            { outlook: 'Rainy', temp: 'Cool', humidity: 'Normal', wind: 'Weak', label: 'Yes' },
+            { outlook: 'Rainy', temp: 'Cool', humidity: 'Normal', wind: 'Strong', label: 'No' },
+            { outlook: 'Overcast', temp: 'Cool', humidity: 'Normal', wind: 'Strong', label: 'Yes' }
+        ];
+
+        // Initialize variables
+        let currentStep = 0;
+        let hypothesis = ['Φ', 'Φ', 'Φ', 'Φ']; // Most specific hypothesis
+        let autoRunInterval = null;
+        let speed = 1; // 1x, 2x, 4x
+
+        // DOM elements
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const autoRunBtn = document.getElementById('auto-run-btn');
+        const speedControl = document.getElementById('speed-control');
+        const explanationEl = document.getElementById('step-explanation');
+        const currentHypothesisEl = document.getElementById('current-hypothesis');
+
+        // Initialize the table
+        function initializeTable() {
+            const tbody = document.querySelector('#training-data tbody');
+            tbody.innerHTML = '';
+
+            trainingData.forEach((example, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${example.outlook}</td>
+                    <td>${example.temp}</td>
+                    <td>${example.humidity}</td>
+                    <td>${example.wind}</td>
+                    <td class="${example.label === 'Yes' ? 'positive' : 'negative'}">${example.label}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Update the visualization
+        function updateVisualization() {
+            // Highlight current example in table
+            document.querySelectorAll('#training-data tbody tr').forEach((row, idx) => {
+                row.classList.toggle('active-example', idx === currentStep);
+            });
+
+            // Update hypothesis display with animation for changes
+            const newHypothesis = hypothesis.map(h => h === 'Φ' ? 'Φ' : h || '?');
+            currentHypothesisEl.textContent = `[${newHypothesis.join(', ')}]`;
+
+            // Update explanation
+            updateExplanation();
+
+            // Update button states
+            prevBtn.disabled = currentStep === 0;
+            nextBtn.disabled = currentStep >= trainingData.length;
+        }
+
+        // Update the explanation text
+        function updateExplanation() {
+            let explanation = '';
+            
+            if (currentStep === 0) {
+                explanation = "Initial state: Most specific hypothesis (Φ means no generalization)";
+            } 
+            else if (currentStep > trainingData.length) {
+                explanation = "All examples processed. Final hypothesis reached.";
+            }
+            else {
+                const example = trainingData[currentStep - 1];
+                
+                if (example.label === 'No') {
+                    explanation = `Example ${currentStep} is negative (No). Find-S ignores negative examples. Hypothesis remains unchanged.`;
+                } 
+                else {
+                    if (hypothesis[0] === 'Φ') {
+                        explanation = `Example ${currentStep} is the first positive example. Hypothesis initialized to match these attributes:`;
+                        explanation += `<br><br>Outlook: ${example.outlook}, Temp: ${example.temp}, Humidity: ${example.humidity}, Wind: ${example.wind}`;
+                    } 
+                    else {
+                        explanation = `Example ${currentStep} is positive. Comparing with current hypothesis:`;
+                        explanation += `<br><br>Generalizing attributes where they don't match (replacing with '?')`;
+                        
+                        // Show specific changes
+                        const attrs = [example.outlook, example.temp, example.humidity, example.wind];
+                        const changes = [];
+                        hypothesis.forEach((h, i) => {
+                            if (h !== '?' && h !== attrs[i]) {
+                                changes.push(`Changed ${['Outlook', 'Temp', 'Humidity', 'Wind'][i]} from ${h} to '?'`);
+                            }
+                        });
+                        
+                        if (changes.length > 0) {
+                            explanation += '<br><br>' + changes.join('<br>');
+                        } else {
+                            explanation += '<br><br>No changes needed - all attributes match';
+                        }
+                    }
+                }
+            }
+            
+            explanationEl.innerHTML = explanation;
+        }
+
+        // Process next step
+        function processNextStep() {
+            if (currentStep >= trainingData.length) return;
+            
+            const example = trainingData[currentStep];
+            
+            if (example.label === 'Yes') {
+                const oldHypothesis = [...hypothesis];
+                
+                if (hypothesis[0] === 'Φ') {
+                    // Initialize with first positive example
+                    hypothesis = [example.outlook, example.temp, example.humidity, example.wind];
+                } 
+                else {
+                    // Generalize the hypothesis
+                    hypothesis = hypothesis.map((h, i) => {
+                        const attrs = [example.outlook, example.temp, example.humidity, example.wind];
+                        return h === attrs[i] ? h : '?';
+                    });
+                }
+                
+                // Highlight changed attributes
+                highlightChanges(oldHypothesis, hypothesis);
+            }
+            
+            currentStep++;
+            updateVisualization();
+        }
+
+        // Highlight changed attributes
+        function highlightChanges(oldHypothesis, newHypothesis) {
+            const hypothesisEl = document.getElementById('current-hypothesis');
+            hypothesisEl.innerHTML = '';
+            
+            newHypothesis.forEach((attr, i) => {
+                const span = document.createElement('span');
+                span.textContent = attr === 'Φ' ? 'Φ' : attr || '?';
+                
+                if (oldHypothesis[i] !== attr) {
+                    span.classList.add('attribute-change');
+                }
+                
+                hypothesisEl.appendChild(span);
+                if (i < newHypothesis.length - 1) {
+                    hypothesisEl.appendChild(document.createTextNode(', '));
+                }
+            });
+        }
+
+        // Process previous step
+        function processPrevStep() {
+            if (currentStep <= 0) return;
+            
+            currentStep--;
+            
+            // For a proper undo, we'd need to track hypothesis history
+            // For simplicity, we'll just reset and reprocess up to current step
+            resetVisualization(false);
+            for (let i = 0; i < currentStep; i++) {
+                const example = trainingData[i];
+                if (example.label === 'Yes') {
+                    if (hypothesis[0] === 'Φ') {
+                        hypothesis = [example.outlook, example.temp, example.humidity, example.wind];
+                    } 
+                    else {
+                        hypothesis = hypothesis.map((h, idx) => {
+                            const attrs = [example.outlook, example.temp, example.humidity, example.wind];
+                            return h === attrs[idx] ? h : '?';
+                        });
+                    }
+                }
+            }
+            
+            updateVisualization();
+        }
+
+        // Reset visualization
+        function resetVisualization(fullReset = true) {
+            if (autoRunInterval) {
+                clearInterval(autoRunInterval);
+                autoRunInterval = null;
+                autoRunBtn.innerHTML = '<i class="fas fa-play"></i> Auto Run';
+            }
+            
+            currentStep = 0;
+            hypothesis = ['Φ', 'Φ', 'Φ', 'Φ'];
+            
+            if (fullReset) {
+                updateVisualization();
+            }
+        }
+
+        // Toggle auto-run
+        function toggleAutoRun() {
+            if (autoRunInterval) {
+                clearInterval(autoRunInterval);
+                autoRunInterval = null;
+                autoRunBtn.innerHTML = '<i class="fas fa-play"></i> Auto Run';
+                return;
+            }
+            
+            autoRunBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
+            
+            const delay = 2000 / speed; // 2 seconds base delay
+            autoRunInterval = setInterval(() => {
+                if (currentStep >= trainingData.length) {
+                    resetVisualization();
+                    return;
+                }
+                processNextStep();
+            }, delay);
+        }
+
+        // Change speed
+        function changeSpeed() {
+            speed = speed * 2;
+            if (speed > 4) speed = 1;
+            speedControl.textContent = `Speed: ${speed}x`;
+            
+            if (autoRunInterval) {
+                toggleAutoRun();
+                toggleAutoRun();
+            }
+        }
+
+        // Event listeners
+        nextBtn.addEventListener('click', processNextStep);
+        prevBtn.addEventListener('click', processPrevStep);
+        resetBtn.addEventListener('click', () => resetVisualization());
+        autoRunBtn.addEventListener('click', toggleAutoRun);
+        speedControl.addEventListener('click', changeSpeed);
+
+        // Initialize
+        initializeTable();
+        updateVisualization();
+    </script>
+</body>
+</html>

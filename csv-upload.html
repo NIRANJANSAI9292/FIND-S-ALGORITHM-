@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find-S Algorithm - CSV Upload</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --background-light: #f5f5f5;
+            --background-dark: #1e1e1e;
+            --text-light: #333;
+            --text-dark: #f5f5f5;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-light);
+            color: var(--text-light);
+            margin: 0;
+            padding: 0;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body.dark {
+            background-color: var(--background-dark);
+            color: var(--text-dark);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .upload-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 2rem;
+            margin-top: 1rem;
+        }
+
+        body.dark .upload-container {
+            background: #2c2c2c;
+        }
+
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary-color);
+            background: rgba(74, 144, 226, 0.05);
+        }
+
+        body.dark .upload-area {
+            border-color: #555;
+        }
+
+        body.dark .upload-area:hover {
+            background: rgba(74, 144, 226, 0.1);
+        }
+
+        .csv-preview {
+            margin-top: 2rem;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        body.dark th, body.dark td {
+            border-color: #444;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        body.dark th {
+            background-color: #333;
+        }
+
+        .positive {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .negative {
+            color: #e74c3c;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background: var(--primary-color);
+            color: white;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background: #357abd;
+        }
+
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+
+        body.dark button:disabled {
+            background: #555;
+        }
+
+        .hypothesis-display {
+            background: #f5f5f5;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-top: 2rem;
+            font-family: monospace;
+            font-size: 1.2rem;
+        }
+
+        body.dark .hypothesis-display {
+            background: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="upload-container">
+            <h2><i class="fas fa-file-csv"></i> CSV Upload</h2>
+            <p>Upload your CSV file to run the Find-S algorithm</p>
+            
+            <div class="upload-area" id="dropArea">
+                <input type="file" id="csvFile" accept=".csv" style="display: none;">
+                <p><i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: var(--primary-color);"></i></p>
+                <p>Drag & drop your CSV file here or click to browse</p>
+                <p><small>CSV should contain attributes and a target concept column</small></p>
+            </div>
+
+            <div class="controls">
+                <button id="processBtn" disabled>Process with Find-S</button>
+                <button id="exampleBtn">Load Example CSV</button>
+            </div>
+
+            <div class="csv-preview" id="previewSection" style="display: none;">
+                <h3>Data Preview</h3>
+                <div id="csvPreview"></div>
+            </div>
+
+            <div class="hypothesis-display" id="hypothesisSection" style="display: none;">
+                <h3>Find-S Algorithm Result</h3>
+                <div id="hypothesisResult"></div>
+                <div id="algorithmSteps"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const dropArea = document.getElementById('dropArea');
+        const csvFileInput = document.getElementById('csvFile');
+        const processBtn = document.getElementById('processBtn');
+        const exampleBtn = document.getElementById('exampleBtn');
+        const previewSection = document.getElementById('previewSection');
+        const csvPreview = document.getElementById('csvPreview');
+        const hypothesisSection = document.getElementById('hypothesisSection');
+        const hypothesisResult = document.getElementById('hypothesisResult');
+        const algorithmSteps = document.getElementById('algorithmSteps');
+
+        // Event Listeners
+        dropArea.addEventListener('click', () => csvFileInput.click());
+        csvFileInput.addEventListener('change', handleFileSelect);
+        processBtn.addEventListener('click', processFindS);
+        exampleBtn.addEventListener('click', loadExampleCSV);
+
+        // Drag and drop functionality
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight() {
+            dropArea.style.borderColor = 'var(--primary-color)';
+            dropArea.style.backgroundColor = 'rgba(74, 144, 226, 0.1)';
+        }
+
+        function unhighlight() {
+            dropArea.style.borderColor = '#ccc';
+            dropArea.style.backgroundColor = '';
+        }
+
+        dropArea.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length > 0 && files[0].name.endsWith('.csv')) {
+                csvFileInput.files = files;
+                handleFileSelect({ target: csvFileInput });
+            }
+        }
+
+        // CSV Processing
+        let csvData = [];
+        let headers = [];
+        let targetColumn = '';
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const contents = e.target.result;
+                parseCSV(contents);
+            };
+            reader.readAsText(file);
+        }
+
+        function parseCSV(csvText) {
+            const lines = csvText.split('\n');
+            headers = lines[0].split(',').map(h => h.trim());
+            
+            csvData = [];
+            for (let i = 1; i < lines.length; i++) {
+                if (lines[i].trim() === '') continue;
+                const values = lines[i].split(',');
+                const row = {};
+                headers.forEach((header, index) => {
+                    row[header] = values[index] ? values[index].trim() : '';
+                });
+                csvData.push(row);
+            }
+
+            displayPreview();
+            processBtn.disabled = false;
+        }
+
+        function displayPreview() {
+            // Let user select target column
+            targetColumn = headers[headers.length - 1]; // Default to last column
+            
+            // Create preview table
+            let tableHTML = `
+                <div class="target-selector">
+                    <label>Target Concept Column: </label>
+                    <select id="targetSelect">
+                        ${headers.map(header => 
+                            `<option value="${header}" ${header === targetColumn ? 'selected' : ''}>${header}</option>`
+                        ).join('')}
+                    </select>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            ${headers.map(header => `<th>${header}</th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${csvData.slice(0, 5).map(row => `
+                            <tr>
+                                ${headers.map(header => `
+                                    <td class="${header === targetColumn ? 
+                                        (row[header].toLowerCase() === 'yes' ? 'positive' : 'negative') : ''}">
+                                        ${row[header]}
+                                    </td>
+                                `).join('')}
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                ${csvData.length > 5 ? `<p>Showing 5 of ${csvData.length} rows</p>` : ''}
+            `;
+            
+            csvPreview.innerHTML = tableHTML;
+            previewSection.style.display = 'block';
+            
+            // Update target column when changed
+            document.getElementById('targetSelect').addEventListener('change', function() {
+                targetColumn = this.value;
+                displayPreview();
+            });
+        }
+
+        function processFindS() {
+            if (csvData.length === 0) return;
+            
+            // Initialize most specific hypothesis
+            let hypothesis = Array(headers.length - 1).fill('Φ');
+            const steps = [];
+            
+            // Process each example
+            csvData.forEach((row, index) => {
+                const example = headers.map(h => row[h]);
+                const label = row[targetColumn];
+                
+                if (label.toLowerCase() === 'yes') {
+                    const oldHypothesis = [...hypothesis];
+                    
+                    if (hypothesis[0] === 'Φ') {
+                        // Initialize with first positive example
+                        hypothesis = example.slice(0, -1); // Exclude target column
+                        steps.push(`<strong>Example ${index + 1}:</strong> First positive example - hypothesis initialized to [${hypothesis.join(', ')}]`);
+                    } else {
+                        // Generalize the hypothesis
+                        const newHypothesis = hypothesis.map((h, i) => 
+                            h === example[i] ? h : '?'
+                        );
+                        
+                        // Check if hypothesis changed
+                        if (JSON.stringify(hypothesis) !== JSON.stringify(newHypothesis)) {
+                            steps.push(`<strong>Example ${index + 1}:</strong> Generalizing hypothesis from [${hypothesis.join(', ')}] to [${newHypothesis.join(', ')}]`);
+                            hypothesis = newHypothesis;
+                        } else {
+                            steps.push(`<strong>Example ${index + 1}:</strong> No change needed - hypothesis remains [${hypothesis.join(', ')}]`);
+                        }
+                    }
+                } else {
+                    steps.push(`<strong>Example ${index + 1}:</strong> Negative example (${label}) - ignored by Find-S algorithm`);
+                }
+            });
+            
+            // Display results
+            hypothesisResult.innerHTML = `
+                <p><strong>Final Hypothesis:</strong> [${hypothesis.join(', ')}]</p>
+                <p>This represents the most specific hypothesis that fits all positive examples in your data.</p>
+            `;
+            
+            algorithmSteps.innerHTML = `
+                <h4>Algorithm Steps:</h4>
+                <ol>
+                    ${steps.map(step => `<li>${step}</li>`).join('')}
+                </ol>
+            `;
+            
+            hypothesisSection.style.display = 'block';
+        }
+
+        function loadExampleCSV() {
+            const exampleCSV = `Outlook,Temperature,Humidity,Wind,PlayTennis
+Sunny,Hot,High,Weak,No
+Sunny,Hot,High,Strong,No
+Overcast,Hot,High,Weak,Yes
+Rainy,Mild,High,Weak,Yes
+Rainy,Cool,Normal,Weak,Yes
+Rainy,Cool,Normal,Strong,No
+Overcast,Cool,Normal,Strong,Yes`;
+            
+            // Simulate file selection
+            parseCSV(exampleCSV);
+            processBtn.disabled = false;
+        }
+    </script>
+</body>
+</html>

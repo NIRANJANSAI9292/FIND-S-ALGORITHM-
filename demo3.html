@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advanced Medical Diagnosis with Find-S</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --influenza: #e63946;
+      --covid: #f77f00;
+      --cold: #4cc9f0;
+      --allergy: #457b9d;
+      --bg-color: #f8f9fa;
+      --card-bg: #ffffff;
+      --text-dark: #1d3557;
+      --highlight: #a8dadc;
+      --input-border: #ced4da;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-dark);
+      margin: 0;
+      padding: 20px;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    h1, h2 {
+      color: var(--text-dark);
+      border-bottom: 2px solid var(--influenza);
+      padding-bottom: 10px;
+      font-family: 'Roboto Mono', monospace;
+    }
+
+    .diagnosis-panel {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 30px;
+      margin-top: 30px;
+    }
+
+    .patient-cases, .algorithm-visualizer, .input-panel {
+      background: var(--card-bg);
+      border-radius: 10px;
+      padding: 25px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .patient-cases {
+      border-left: 5px solid var(--influenza);
+    }
+
+    .algorithm-visualizer {
+      border-left: 5px solid var(--covid);
+    }
+
+    .input-panel {
+      margin-top: 30px;
+      border-left: 5px solid var(--allergy);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background-color: var(--text-dark);
+      color: white;
+      font-weight: 600;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f8f9fa;
+    }
+
+    tr:hover {
+      background-color: var(--highlight);
+    }
+
+    .influenza-case {
+      border-left: 4px solid var(--influenza);
+    }
+
+    .covid-case {
+      border-left: 4px solid var(--covid);
+    }
+
+    .cold-case {
+      border-left: 4px solid var(--cold);
+    }
+
+    .allergy-case {
+      border-left: 4px solid var(--allergy);
+    }
+
+    .processing {
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { background-color: rgba(168, 218, 220, 0.3); }
+      50% { background-color: rgba(168, 218, 220, 0.7); }
+      100% { background-color: rgba(168, 218, 220, 0.3); }
+    }
+
+    .hypothesis-display {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 25px 0;
+      border: 2px dashed var(--text-dark);
+    }
+
+    .hypothesis-item {
+      display: inline-block;
+      margin: 8px;
+      padding: 10px 15px;
+      background: var(--text-dark);
+      color: white;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+
+    .hypothesis-item.changed {
+      animation: highlight 1s ease;
+      background: var(--influenza);
+    }
+
+    @keyframes highlight {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); box-shadow: 0 0 10px rgba(230, 57, 70, 0.5); }
+      100% { transform: scale(1); }
+    }
+
+    .controls {
+      display: flex;
+      gap: 15px;
+      margin-top: 25px;
+    }
+
+    button {
+      padding: 12px 25px;
+      border: none;
+      border-radius: 30px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .next-btn {
+      background: var(--text-dark);
+      color: white;
+    }
+
+    .next-btn:hover {
+      background: #14213d;
+      transform: translateY(-2px);
+    }
+
+    .reset-btn {
+      background: #e9ecef;
+      color: var(--text-dark);
+    }
+
+    .reset-btn:hover {
+      background: #dee2e6;
+    }
+
+    .add-case-btn {
+      background: var(--allergy);
+      color: white;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .progress-container {
+      margin-top: 25px;
+    }
+
+    .progress-bar {
+      height: 10px;
+      background: #e9ecef;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+
+    .progress {
+      height: 100%;
+      background: linear-gradient(90deg, var(--influenza), var(--covid));
+      width: 0%;
+      transition: width 0.5s ease;
+    }
+
+    .feedback {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 8px;
+      background: #e9ecef;
+      border-left: 4px solid var(--text-dark);
+    }
+
+    .diagnosis-key {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin: 20px 0;
+    }
+
+    .diagnosis-tag {
+      padding: 8px 15px;
+      background: #e9ecef;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+    }
+
+    .diagnosis-tag i {
+      margin-right: 8px;
+    }
+
+    .patient-details {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 20px;
+      border-left: 4px solid var(--influenza);
+    }
+
+    .probability-display {
+      margin-top: 15px;
+      font-size: 0.9rem;
+    }
+
+    .probability-bar {
+      height: 10px;
+      background: #e9ecef;
+      border-radius: 5px;
+      margin-top: 5px;
+      overflow: hidden;
+    }
+
+    .probability-fill {
+      height: 100%;
+      background: var(--influenza);
+      width: 0%;
+      transition: width 1s ease;
+    }
+
+    .input-form {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    label {
+      margin-bottom: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    select, input {
+      padding: 10px;
+      border: 1px solid var(--input-border);
+      border-radius: 5px;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 1024px) {
+      .diagnosis-panel {
+        grid-template-columns: 1fr;
+      }
+      
+      h1 {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1><i class="fas fa-user-md"></i> ADVANCED MEDICAL DIAGNOSIS SYSTEM</h1>
+    <p>Concept learning for differential diagnosis using the Find-S algorithm</p>
+    
+    <div class="diagnosis-panel">
+      <div class="patient-cases">
+        <h2><i class="fas fa-procedures"></i> PATIENT CASES</h2>
+        
+        <table id="casesTable">
+          <thead>
+            <tr>
+              <th>Case</th>
+              <th>Fever</th>
+              <th>Cough</th>
+              <th>Rash</th>
+              <th>Headache</th>
+              <th>Sore Throat</th>
+              <th>Fatigue</th>
+              <th>Diagnosis</th>
+              <th>Probability</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Filled by JavaScript -->
+          </tbody>
+        </table>
+        
+        <div class="diagnosis-key">
+          <div class="diagnosis-tag" style="border-left: 3px solid var(--influenza);">
+            <i class="fas fa-virus"></i> <strong>Influenza</strong>
+          </div>
+          <div class="diagnosis-tag" style="border-left: 3px solid var(--covid);">
+            <i class="fas fa-virus"></i> <strong>COVID-19</strong>
+          </div>
+          <div class="diagnosis-tag" style="border-left: 3px solid var(--cold);">
+            <i class="fas fa-head-side-cough"></i> <strong>Common Cold</strong>
+          </div>
+          <div class="diagnosis-tag" style="border-left: 3px solid var(--allergy);">
+            <i class="fas fa-allergies"></i> <strong>Allergy</strong>
+          </div>
+        </div>
+      </div>
+      
+      <div class="algorithm-visualizer">
+        <h2><i class="fas fa-brain"></i> DIAGNOSIS ALGORITHM</h2>
+        
+        <div class="patient-details" id="patientDetails">
+          <strong>Selected Patient:</strong> Click a case to view details
+        </div>
+        
+        <div class="hypothesis-display">
+          <p>Current Diagnosis Pattern for <span style="color: var(--influenza);">Influenza</span>:</p>
+          <div id="hypothesisContainer">
+            <!-- Filled by JavaScript -->
+          </div>
+        </div>
+        
+        <div class="probability-display">
+          <p>Influenza Probability for Current Case:</p>
+          <div class="probability-bar">
+            <div class="probability-fill" id="probabilityBar"></div>
+          </div>
+          <div id="probabilityText">0%</div>
+        </div>
+        
+        <div class="feedback" id="feedback">
+          <!-- Filled by JavaScript -->
+        </div>
+        
+        <div class="controls">
+          <button class="next-btn" id="nextBtn">
+            <i class="fas fa-forward"></i> NEXT CASE
+          </button>
+          <button class="reset-btn" id="resetBtn">
+            <i class="fas fa-undo"></i> RESET
+          </button>
+        </div>
+        
+        <div class="progress-container">
+          <p>Learning Progress:</p>
+          <div class="progress-bar">
+            <div class="progress" id="progressBar"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="input-panel">
+      <h2><i class="fas fa-plus-circle"></i> ADD NEW PATIENT CASE</h2>
+      
+      <div class="input-form">
+        <div class="input-group">
+          <label for="caseId">Case ID</label>
+          <input type="text" id="caseId" placeholder="e.g., 101">
+        </div>
+        
+        <div class="input-group">
+          <label for="fever">Fever</label>
+          <select id="fever">
+            <option value="None">None</option>
+            <option value="Low">Low (≤38°C)</option>
+            <option value="High">High (>38°C)</option>
+          </select>
+        </div>
+        
+        <div class="input-group">
+          <label for="cough">Cough</label>
+          <select id="cough">
+            <option value="None">None</option>
+            <option value="Dry">Dry</option>
+            <option value="Productive">Productive</option>
+          </select>
+        </div>
+        
+        <div class="input-group">
+          <label for="rash">Rash</label>
+          <select id="rash">
+            <option value="None">None</option>
+            <option value="Localized">Localized</option>
+            <option value="Widespread">Widespread</option>
+          </select>
+        </div>
+        
+        <div class="input-group">
+          <label for="headache">Headache</label>
+          <select id="headache">
+            <option value="None">None</option>
+            <option value="Mild">Mild</option>
+            <option value="Severe">Severe</option>
+          </select>
+        </div>
+        
+        <div class="input-group">
+          <label for="soreThroat">Sore Throat</label>
+          <select id="soreThroat">
+            <option value="None">None</option>
+            <option value="Mild">Mild</option>
+            <option value="Severe">Severe</option>
+          </select>
+        </div>
+        
+        <div class="input-group">
+          <label for="fatigue">Fatigue</label>
+          <select id="fatigue">
+            <option value="None">None</option>
+            <option value="Mild">Mild</option>
+            <option value="Severe">Severe</option>
+          </select>
+        </div>
+        
+        <div class="input-group">
+          <label for="diagnosis">Diagnosis</label>
+          <select id="diagnosis">
+            <option value="Influenza">Influenza</option>
+            <option value="COVID-19">COVID-19</option>
+            <option value="Common Cold">Common Cold</option>
+            <option value="Allergy">Allergy</option>
+          </select>
+        </div>
+        
+        <div class="input-group">
+          <label for="details">Patient Details</label>
+          <input type="text" id="details" placeholder="Brief description">
+        </div>
+      </div>
+      
+      <div class="form-actions">
+        <button class="add-case-btn" id="addCaseBtn">
+          <i class="fas fa-plus"></i> ADD CASE
+        </button>
+        <button class="reset-btn" id="clearFormBtn">
+          <i class="fas fa-trash"></i> CLEAR FORM
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Dataset - Expanded with more symptoms and diagnoses
+    let patients = [
+      { 
+        id: 1,
+        symptoms: ["High", "Dry", "None", "Severe", "Mild", "Severe"],
+        diagnosis: "Influenza",
+        details: "18yo male, high fever for 3 days, dry cough, severe headache"
+      },
+      { 
+        id: 2,
+        symptoms: ["None", "None", "Localized", "None", "None", "None"],
+        diagnosis: "Allergy",
+        details: "32yo female, seasonal allergies with localized rash"
+      },
+      { 
+        id: 3,
+        symptoms: ["High", "Dry", "None", "Severe", "Severe", "Severe"],
+        diagnosis: "COVID-19",
+        details: "45yo male, high fever, dry cough, loss of taste/smell"
+      },
+      { 
+        id: 4,
+        symptoms: ["Low", "Productive", "None", "Mild", "Severe", "Mild"],
+        diagnosis: "Common Cold",
+        details: "12yo female, low fever, runny nose, sneezing"
+      },
+      { 
+        id: 5,
+        symptoms: ["High", "Dry", "None", "Severe", "Mild", "Severe"],
+        diagnosis: "Influenza",
+        details: "28yo female, high fever, body aches, fatigue"
+      }
+    ];
+
+    // Initialize
+    let currentCase = 0;
+    let currentHypothesis = Array(6).fill('∅');
+    const symptomNames = ["Fever", "Cough", "Rash", "Headache", "Sore Throat", "Fatigue"];
+    const diagnoses = ["Influenza", "COVID-19", "Common Cold", "Allergy"];
+
+    // DOM Elements
+    const casesTable = document.getElementById('casesTable').getElementsByTagName('tbody')[0];
+    const hypothesisContainer = document.getElementById('hypothesisContainer');
+    const feedbackDiv = document.getElementById('feedback');
+    const patientDetailsDiv = document.getElementById('patientDetails');
+    const probabilityBar = document.getElementById('probabilityBar');
+    const probabilityText = document.getElementById('probabilityText');
+    const nextBtn = document.getElementById('nextBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const progressBar = document.getElementById('progressBar');
+    const addCaseBtn = document.getElementById('addCaseBtn');
+    const clearFormBtn = document.getElementById('clearFormBtn');
+
+    // Initialize table
+    function renderCases() {
+      casesTable.innerHTML = '';
+      patients.forEach((patient, index) => {
+        const row = casesTable.insertRow();
+        
+        // Set row class based on diagnosis
+        if (patient.diagnosis === "Influenza") row.classList.add('influenza-case');
+        else if (patient.diagnosis === "COVID-19") row.classList.add('covid-case');
+        else if (patient.diagnosis === "Common Cold") row.classList.add('cold-case');
+        else if (patient.diagnosis === "Allergy") row.classList.add('allergy-case');
+        
+        if (index < currentCase) row.classList.add('processed');
+        
+        // Add cells
+        row.insertCell(0).textContent = patient.id;
+        patient.symptoms.forEach((symptom, i) => {
+          row.insertCell(i+1).textContent = symptom;
+        });
+        row.insertCell(7).textContent = patient.diagnosis;
+        
+        // Calculate and display probability
+        const probabilityCell = row.insertCell(8);
+        const prob = calculateProbability(patient);
+        probabilityCell.textContent = `${prob}%`;
+        probabilityCell.style.color = prob > 70 ? 'red' : prob > 40 ? 'orange' : 'green';
+        
+        // Click to view patient details
+        row.onclick = () => {
+          patientDetailsDiv.innerHTML = `
+            <strong>Case #${patient.id}:</strong> ${patient.diagnosis}
+            <div style="margin-top:10px;font-size:0.9em;">${patient.details}</div>
+          `;
+          updateProbabilityDisplay(patient);
+          
+          // Highlight selected row
+          Array.from(casesTable.rows).forEach(r => r.classList.remove('selected'));
+          row.classList.add('selected');
+        };
+      });
+      
+      // Show first patient by default
+      if (patients.length > 0) {
+        patientDetailsDiv.innerHTML = `
+          <strong>Case #${patients[0].id}:</strong> ${patients[0].diagnosis}
+          <div style="margin-top:10px;font-size:0.9em;">${patients[0].details}</div>
+        `;
+        updateProbabilityDisplay(patients[0]);
+        casesTable.rows[0].classList.add('selected');
+      }
+    }
+
+    // Calculate probability of Influenza
+    function calculateProbability(patient) {
+      if (currentHypothesis.every(val => val === '∅')) return 0;
+      
+      let matchCount = 0;
+      currentHypothesis.forEach((val, i) => {
+        if (val !== '∅' && val !== '?' && val === patient.symptoms[i]) {
+          matchCount++;
+        } else if (val === '?') {
+          matchCount += 0.5; // Partial match for generalized symptoms
+        }
+      });
+      
+      const totalRelevant = currentHypothesis.filter(val => val !== '∅').length;
+      const probability = totalRelevant > 0 ? Math.round((matchCount / totalRelevant) * 100) : 0;
+      return Math.min(probability, 100); // Cap at 100%
+    }
+
+    // Update probability display
+    function updateProbabilityDisplay(patient) {
+      const probability = calculateProbability(patient);
+      probabilityBar.style.width = `${probability}%`;
+      probabilityText.textContent = `${probability}%`;
+      probabilityText.style.color = probability > 70 ? 'red' : probability > 40 ? 'orange' : 'green';
+    }
+
+    // Render hypothesis
+    function renderHypothesis() {
+      hypothesisContainer.innerHTML = '';
+      currentHypothesis.forEach((val, i) => {
+        const span = document.createElement('span');
+        span.className = 'hypothesis-item';
+        span.id = `hyp-${i}`;
+        span.innerHTML = `<strong>${symptomNames[i]}:</strong> ${val}`;
+        hypothesisContainer.appendChild(span);
+      });
+    }
+
+    // Highlight changed symptom
+    function highlightChange(index) {
+      const elem = document.getElementById(`hyp-${index}`);
+      elem.classList.add('changed');
+      setTimeout(() => elem.classList.remove('changed'), 1000);
+    }
+
+    // Show feedback
+    function showFeedback(message) {
+      feedbackDiv.style.display = 'block';
+      feedbackDiv.innerHTML = message;
+    }
+
+    // Update progress bar
+    function updateProgress() {
+      progressBar.style.width = (currentCase / patients.length * 100) + '%';
+    }
+
+    // Process next case
+    function processNextCase() {
+      if (currentCase >= patients.length) {
+        showFeedback('✅ Diagnosis pattern complete! The algorithm has learned to identify Influenza cases.');
+        nextBtn.disabled = true;
+        return;
+      }
+
+      const patient = patients[currentCase];
+      let feedback = '';
+      
+      // Highlight current row
+      const rows = casesTable.rows;
+      rows[currentCase].classList.add('processing');
+      setTimeout(() => rows[currentCase].classList.remove('processing'), 1500);
+
+      // Show current patient details
+      patientDetailsDiv.innerHTML = `
+        <strong>Case #${patient.id}:</strong> ${patient.diagnosis}
+        <div style="margin-top:10px;font-size:0.9em;">${patient.details}</div>
+      `;
+      updateProbabilityDisplay(patient);
+
+      if (patient.diagnosis === "Influenza") {
+        feedback = `<strong>Case #${patient.id}:</strong> Influenza (Positive Example) - Updating diagnosis pattern...<br><br>`;
+        
+        let changed = false;
+        for (let i = 0; i < patient.symptoms.length; i++) {
+          if (currentHypothesis[i] === '∅') {
+            currentHypothesis[i] = patient.symptoms[i];
+            feedback += `• Initialized <strong>${symptomNames[i]}</strong> to <strong>${patient.symptoms[i]}</strong><br>`;
+            highlightChange(i);
+            changed = true;
+          } else if (currentHypothesis[i] !== patient.symptoms[i] && currentHypothesis[i] !== '?') {
+            currentHypothesis[i] = '?';
+            feedback += `• Generalized <strong>${symptomNames[i]}</strong> to <strong>?</strong> (not consistent across cases)<br>`;
+            highlightChange(i);
+            changed = true;
+          }
+        }
+        
+        if (!changed) {
+          feedback += 'No changes needed - pattern already matches this influenza case';
+        }
+      } else {
+        feedback = `<strong>Case #${patient.id}:</strong> ${patient.diagnosis} (Negative Example) - Ignored by algorithm`;
+      }
+
+      showFeedback(feedback);
+      renderHypothesis();
+      currentCase++;
+      updateProgress();
+      
+      if (currentCase >= patients.length) {
+        nextBtn.disabled = true;
+      }
+    }
+
+    // Add new case
+    function addNewCase() {
+      const id = document.getElementById('caseId').value.trim() || (patients.length + 1);
+      const symptoms = [
+        document.getElementById('fever').value,
+        document.getElementById('cough').value,
+        document.getElementById('rash').value,
+        document.getElementById('headache').value,
+        document.getElementById('soreThroat').value,
+        document.getElementById('fatigue').value
+      ];
+      const diagnosis = document.getElementById('diagnosis').value;
+      const details = document.getElementById('details').value || "No additional details provided";
+      
+      const newPatient = {
+        id: id,
+        symptoms: symptoms,
+        diagnosis: diagnosis,
+        details: details
+      };
+      
+      patients.push(newPatient);
+      renderCases();
+      clearForm();
+      
+      // If we were done processing, allow more processing
+      if (currentCase >= patients.length - 1) {
+        nextBtn.disabled = false;
+      }
+    }
+
+    // Clear form
+    function clearForm() {
+      document.getElementById('caseId').value = '';
+      document.getElementById('fever').value = 'None';
+      document.getElementById('cough').value = 'None';
+      document.getElementById('rash').value = 'None';
+      document.getElementById('headache').value = 'None';
+      document.getElementById('soreThroat').value = 'None';
+      document.getElementById('fatigue').value = 'None';
+      document.getElementById('diagnosis').value = 'Influenza';
+      document.getElementById('details').value = '';
+    }
+
+    // Reset everything
+    function reset() {
+      currentCase = 0;
+      currentHypothesis = Array(6).fill('∅');
+      renderCases();
+      renderHypothesis();
+      feedbackDiv.style.display = 'none';
+      nextBtn.disabled = false;
+      updateProgress();
+      updateProbabilityDisplay(patients[0] || { symptoms: Array(6).fill('None') });
+    }
+
+    // Event listeners
+    nextBtn.addEventListener('click', processNextCase);
+    resetBtn.addEventListener('click', reset);
+    addCaseBtn.addEventListener('click', addNewCase);
+    clearFormBtn.addEventListener('click', clearForm);
+
+    // Initialize
+    renderCases();
+    renderHypothesis();
+    updateProgress();
+    updateProbabilityDisplay(patients[0] || { symptoms: Array(6).fill('None') });
+  </script>
+</body>
+</html>
