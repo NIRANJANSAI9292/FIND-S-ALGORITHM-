@@ -1,0 +1,1 @@
+Interactive web app to demonstrate Find-S and compare it with 10 ML algorithms (ID3, Naive Bayes, SVM, MLP, SLP, KNN, Weighted KNN, EM, Candidate Elimination, BBN). Features CSV upload, step-by-step visualization, dark/light mode, and a concept video library.
